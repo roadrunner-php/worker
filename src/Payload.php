@@ -20,9 +20,9 @@ final class Payload
     /**
      * Execution payload (binary).
      *
-     * @var string
+     * @var string|null
      */
-    public string $body;
+    public ?string $body;
 
     /**
      * Execution context (binary).
@@ -32,10 +32,10 @@ final class Payload
     public ?string $header;
 
     /**
-     * @param string      $body
+     * @param string|null $body
      * @param string|null $header
      */
-    public function __construct(string $body, ?string $header = null)
+    public function __construct(?string $body, ?string $header = null)
     {
         $this->body = $body;
         $this->header = $header;

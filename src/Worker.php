@@ -11,8 +11,8 @@ declare(strict_types=1);
 namespace Spiral\RoadRunner;
 
 use Spiral\Goridge\Exceptions\GoridgeException;
+use Spiral\Goridge\Message;
 use Spiral\Goridge\RelayInterface as Relay;
-use Spiral\Goridge\SendPackageRelayInterface;
 use Spiral\RoadRunner\Exception\RoadRunnerException;
 
 /**
@@ -81,7 +81,7 @@ class Worker implements WorkerInterface
      */
     public function error(string $message): void
     {
-        $this->relay->send($message, Relay::PAYLOAD_ERROR);
+        $this->relay->send(new Message($message, Message::ERROR));
     }
 
     /**
@@ -105,16 +105,10 @@ class Worker implements WorkerInterface
      */
     public function send(string $body, ?string $context): void
     {
-        if ($this->relay instanceof SendPackageRelayInterface) {
-            $this->relay->sendPackage(
-                (string) $context,
-                Relay::PAYLOAD_CONTROL,
-                (string) $body
-            );
-        }
-
-        $this->relay->send($context, Relay::PAYLOAD_CONTROL);
-        $this->relay->send($body);
+        $this->relay->send(
+            new Message((string) $context, Message::CONTROL),
+            new Message((string) $body)
+        );
     }
 
     /**
@@ -127,7 +121,7 @@ class Worker implements WorkerInterface
     private function waitHeader(?string &$header): bool
     {
         $header = $this->relay->receiveSync($flags);
-        if (!$flags & Relay::PAYLOAD_CONTROL) {
+        if (!$flags & Message::CONTROL) {
             // got the beginning of the frame
             return true;
         }
@@ -156,7 +150,7 @@ class Worker implements WorkerInterface
 
         switch (true) {
             case !empty($p['pid']):
-                $this->relay->send(sprintf('{"pid":%s}', getmypid()), Relay::PAYLOAD_CONTROL);
+                $this->relay->send(new Message(sprintf('{"pid":%s}', getmypid()), Message::CONTROL));
                 return true;
 
             case !empty($p['stop']):
