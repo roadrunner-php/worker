@@ -13,6 +13,7 @@ namespace Spiral\RoadRunner;
 use Spiral\Goridge\Exceptions\GoridgeException;
 use Spiral\Goridge\Message;
 use Spiral\Goridge\RelayInterface as Relay;
+use Spiral\RoadRunner\Exception\EnvironmentException;
 use Spiral\RoadRunner\Exception\RoadRunnerException;
 
 /**
@@ -159,5 +160,33 @@ class Worker implements WorkerInterface
             default:
                 throw new RoadRunnerException('Invalid task header, undefined control package');
         }
+    }
+
+    /**
+     * Create Worker using server relay address.
+     *
+     * Example:
+     * Worker::fromRelayAddress("unix://sock.sock");
+     * Worker::fromRelayAddress("pipes");
+     *
+     * @param string $address
+     * @return WorkerInterface
+     */
+    public static function fromRelayAddress(string $address): WorkerInterface
+    {
+        return new static(\Spiral\Goridge\Relay::fromAddress($address));
+    }
+
+    /**
+     * Create Worker using global environment configuration.
+     *
+     * @return WorkerInterface
+     * @throws EnvironmentException
+     */
+    public static function fromGlobals(): WorkerInterface
+    {
+        $env = Environment::fromGlobals();
+
+        return new static(\Spiral\Goridge\Relay::fromAddress($env->getRelayAddress()));
     }
 }

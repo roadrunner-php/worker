@@ -17,16 +17,11 @@ final class Message
     public const CONTROL = 16;
 
     public ?string $body;
-    public ?int    $flags;
+    public int     $flags;
 
-    public function __construct(string $body, ?int $flags=0)
+    public function __construct(string $body, int $flags = 0)
     {
         $this->body = $body;
         $this->flags = $flags;
-    }
-
-    public function serialize(): string
-    {
-        return '';
     }
 }

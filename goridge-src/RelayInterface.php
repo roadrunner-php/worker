@@ -13,7 +13,13 @@ namespace Spiral\Goridge;
 
 interface RelayInterface
 {
+    /**
+     * @return Message|null
+     */
     public function waitMessage(): ?Message;
 
+    /**
+     * @param Message ...$message
+     */
     public function send(Message ...$message): void;
 }
