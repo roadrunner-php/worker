@@ -10,7 +10,7 @@ declare(strict_types=1);
 
 namespace Spiral\RoadRunner;
 
-use Spiral\Goridge\Exceptions\RPCException;
+use Spiral\Goridge\Exception\RPCException;
 use Spiral\Goridge\RPC;
 use Spiral\RoadRunner\Exception\MetricException;
 

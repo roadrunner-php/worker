@@ -10,7 +10,7 @@ declare(strict_types=1);
 
 namespace Spiral\RoadRunner;
 
-use Spiral\Goridge\Exceptions\GoridgeException;
+use Spiral\Goridge\Exception\GoridgeException;
 use Spiral\RoadRunner\Exception\RoadRunnerException;
 
 interface WorkerInterface

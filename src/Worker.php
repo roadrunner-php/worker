@@ -10,7 +10,7 @@ declare(strict_types=1);
 
 namespace Spiral\RoadRunner;
 
-use Spiral\Goridge\Exceptions\GoridgeException;
+use Spiral\Goridge\Exception\GoridgeException;
 use Spiral\Goridge\Message;
 use Spiral\Goridge\RelayInterface as Relay;
 use Spiral\RoadRunner\Exception\EnvironmentException;
@@ -19,7 +19,7 @@ use Spiral\RoadRunner\Exception\RoadRunnerException;
 /**
  * Accepts connection from RoadRunner server over given Goridge relay.
  *
- * $worker = Worker::fromGlobals();
+ * $worker = Worker::create();
  * while ($p = $worker->waitPayload()) {
  *      $worker->send(new Payload("DONE", json_encode($context)));
  * }
@@ -161,30 +161,15 @@ class Worker implements WorkerInterface
     }
 
     /**
-     * Create Worker using server relay address.
-     *
-     * Example:
-     * Worker::fromRelayAddress("unix://sock.sock");
-     * Worker::fromRelayAddress("pipes");
-     *
-     * @param string $address
-     * @return WorkerInterface
-     */
-    public static function fromRelayAddress(string $address): WorkerInterface
-    {
-        return new static(\Spiral\Goridge\Relay::fromAddress($address));
-    }
-
-    /**
      * Create Worker using global environment configuration.
      *
      * @return WorkerInterface
      * @throws EnvironmentException
      */
-    public static function fromGlobals(): WorkerInterface
+    public static function create(): WorkerInterface
     {
         $env = Environment::fromGlobals();
 
-        return new static(\Spiral\Goridge\Relay::fromAddress($env->getRelayAddress()));
+        return new static(\Spiral\Goridge\Relay::create($env->getRelayAddress()));
     }
 }

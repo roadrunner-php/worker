@@ -11,7 +11,9 @@ declare(strict_types=1);
 
 namespace Spiral\Goridge\RPC\Exception;
 
-class RPCException extends \RuntimeException
+use Spiral\Goridge\Exception\GoridgeException;
+
+class RPCException extends GoridgeException
 {
 
 }

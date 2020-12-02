@@ -22,10 +22,10 @@ final class Message
     public int     $flags;
 
     /**
-     * @param string $body
-     * @param int    $flags
+     * @param string|null $body
+     * @param int         $flags
      */
-    public function __construct(string $body, int $flags = 0)
+    public function __construct(?string $body, int $flags = 0)
     {
         $this->body = $body;
         $this->flags = $flags;
