@@ -59,14 +59,6 @@ class Environment implements EnvironmentInterface
     }
 
     /**
-     * @return EnvironmentInterface
-     */
-    public static function fromGlobals(): EnvironmentInterface
-    {
-        return new static(array_merge($_SERVER, $_ENV));
-    }
-
-    /**
      * @param string $name
      * @return string
      * @throws EnvironmentException
@@ -78,5 +70,13 @@ class Environment implements EnvironmentInterface
         }
 
         return (string) $this->env[$name];
+    }
+
+    /**
+     * @return EnvironmentInterface
+     */
+    public static function fromGlobals(): EnvironmentInterface
+    {
+        return new static(array_merge($_SERVER, $_ENV));
     }
 }

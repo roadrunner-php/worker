@@ -19,9 +19,7 @@ use Spiral\RoadRunner\Exception\RoadRunnerException;
 /**
  * Accepts connection from RoadRunner server over given Goridge relay.
  *
- * Example:
- *
- * $worker = new Worker(new Goridge\StreamRelay(STDIN, STDOUT));
+ * $worker = Worker::fromGlobals();
  * while ($p = $worker->waitPayload()) {
  *      $worker->send(new Payload("DONE", json_encode($context)));
  * }
