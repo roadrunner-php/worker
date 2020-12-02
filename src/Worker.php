@@ -1,10 +1,11 @@
 <?php
 
 /**
- * High-performance PHP process supervisor and load balancer written in Go
+ * High-performance PHP process supervisor and load balancer written in Go.
  *
  * @author Wolfy-J
  */
+
 declare(strict_types=1);
 
 namespace Spiral\RoadRunner;
@@ -20,17 +21,17 @@ use Spiral\RoadRunner\Exception\RoadRunnerException;
  * Example:
  *
  * $worker = new Worker(new Goridge\StreamRelay(STDIN, STDOUT));
- * while ($task = $worker->receive($context)) {
- *      $worker->send("DONE", json_encode($context));
+ * while ($p = $worker->waitPayload()) {
+ *      $worker->send(new Payload("DONE", json_encode($context)));
  * }
  */
-class Worker
+class Worker implements WorkerInterface
 {
-    // Send as response context to request worker termination
-    public const STOP = '{"stop":true}';
+    // Request graceful worker termination.
+    private const STOP_REQUEST = '{"stop":true}';
 
     /** @var Relay */
-    private $relay;
+    private Relay $relay;
 
     /**
      * @param Relay $relay
@@ -41,65 +42,31 @@ class Worker
     }
 
     /**
-     * Receive packet of information to process, returns null when process must be stopped. Might
-     * return Error to wrap error message from server.
+     * Wait for incoming payload from the server. Must return null when worker stopped.
      *
-     * @param mixed $header
-     * @return \Error|null|string
-     *
+     * @return Payload|null
      * @throws GoridgeException
+     * @throws RoadRunnerException
      */
-    public function receive(&$header)
+    public function waitPayload(): ?Payload
     {
-        $body = $this->relay->receiveSync($flags);
-
-        if ($flags & Relay::PAYLOAD_CONTROL) {
-            if ($this->handleControl($body, $header, $flags)) {
-                // wait for the next command
-                return $this->receive($header);
-            }
-
-            // no context for the termination.
-            $header = null;
-
-            // Expect process termination
+        $header = null;
+        if (!$this->waitHeader($header)) {
             return null;
         }
 
-        if ($flags & Relay::PAYLOAD_ERROR) {
-            return new \Error((string)$body);
-        }
-
-        return $body;
+        return new Payload($this->relay->receiveSync(), $header);
     }
 
     /**
-     * Respond to the server with result of task execution and execution context.
+     * Respond to the server with the processing result.
      *
-     * Example:
-     * $worker->respond((string)$response->getBody(), json_encode($response->getHeaders()));
-     *
-     * @param string|null $payload
-     * @param string|null $header
+     * @param Payload $payload
+     * @throws GoridgeException
      */
-    public function send(string $payload = null, string $header = null): void
+    public function respond(Payload $payload): void
     {
-        if (!$this->relay instanceof SendPackageRelayInterface) {
-            if ($header === null) {
-                $this->relay->send('', Relay::PAYLOAD_CONTROL | Relay::PAYLOAD_NONE);
-            } else {
-                $this->relay->send($header, Relay::PAYLOAD_CONTROL | Relay::PAYLOAD_RAW);
-            }
-
-            $this->relay->send((string)$payload, Relay::PAYLOAD_RAW);
-        } else {
-            $this->relay->sendPackage(
-                (string)$header,
-                Relay::PAYLOAD_CONTROL | ($header === null ? Relay::PAYLOAD_NONE : Relay::PAYLOAD_RAW),
-                (string)$payload,
-                Relay::PAYLOAD_RAW
-            );
-        }
+        $this->send($payload->body, $payload->header);
     }
 
     /**
@@ -114,10 +81,7 @@ class Worker
      */
     public function error(string $message): void
     {
-        $this->relay->send(
-            $message,
-            Relay::PAYLOAD_CONTROL | Relay::PAYLOAD_RAW | Relay::PAYLOAD_ERROR
-        );
+        $this->relay->send($message, Relay::PAYLOAD_ERROR);
     }
 
     /**
@@ -131,48 +95,75 @@ class Worker
      */
     public function stop(): void
     {
-        $this->send(null, self::STOP);
+        $this->send("", self::STOP_REQUEST);
     }
 
     /**
-     * Handles incoming control command payload and executes it if required.
-     *
-     * @param string $body
-     * @param mixed  $header Exported context (if any).
-     * @param int    $flags
-     * @return bool True when continue processing.
-     *
-     * @throws RoadRunnerException
+     * @param string      $body
+     * @param string|null $context
+     * @throws GoridgeException
      */
-    private function handleControl(string $body = null, &$header = null, int $flags = 0): bool
+    public function send(string $body, ?string $context): void
     {
-        $header = $body;
-        if ($body === null || $flags & Relay::PAYLOAD_RAW) {
-            // empty or raw prefix
-            return true;
-        }
-
-        $p = json_decode($body, true);
-        if ($p === false) {
-            throw new RoadRunnerException('invalid task context, JSON payload is expected');
-        }
-
-        // PID negotiation (socket connections only)
-        if (!empty($p['pid'])) {
-            $this->relay->send(
-                sprintf('{"pid":%s}', getmypid()),
-                Relay::PAYLOAD_CONTROL
+        if ($this->relay instanceof SendPackageRelayInterface) {
+            $this->relay->sendPackage(
+                (string) $context,
+                Relay::PAYLOAD_CONTROL,
+                (string) $body
             );
         }
 
-        // termination request
-        if (!empty($p['stop'])) {
+        $this->relay->send($context, Relay::PAYLOAD_CONTROL);
+        $this->relay->send($body);
+    }
+
+    /**
+     * @param string|null $header
+     * @return bool
+     *
+     * @throws GoridgeException
+     * @throws RoadRunnerException
+     */
+    private function waitHeader(?string &$header): bool
+    {
+        $header = $this->relay->receiveSync($flags);
+        if (!$flags & Relay::PAYLOAD_CONTROL) {
+            // got the beginning of the frame
+            return true;
+        }
+
+        if (!$this->handleControl($header)) {
             return false;
         }
 
-        // parsed header
-        $header = $p;
+        return $this->waitHeader($header);
+    }
 
-        return true;
+    /**
+     * Return true if continue.
+     *
+     * @param string $header
+     * @return bool
+     *
+     * @throws RoadRunnerException
+     */
+    private function handleControl(string $header): bool
+    {
+        $command = json_decode($header, true);
+        if ($command === false) {
+            throw new RoadRunnerException('Invalid task header, JSON payload is expected');
+        }
+
+        switch (true) {
+            case !empty($p['pid']):
+                $this->relay->send(sprintf('{"pid":%s}', getmypid()), Relay::PAYLOAD_CONTROL);
+                return true;
+
+            case !empty($p['stop']):
+                return false;
+
+            default:
+                throw new RoadRunnerException('Invalid task header, undefined control package');
+        }
     }
 }

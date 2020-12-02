@@ -19,7 +19,8 @@
     "spiral/goridge": "^2.4.2"
   },
   "require-dev": {
-    "phpstan/phpstan": "~0.12"
+    "phpstan/phpstan": "~0.12",
+    "phpunit/phpunit": "~8.0"
   },
   "scripts": {
     "analyze": "phpstan analyze -c ./phpstan.neon.dist --no-progress --ansi"
