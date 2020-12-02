@@ -1,0 +1,32 @@
+{
+  "name": "spiral/roadrunner",
+  "type": "server",
+  "description": "RoadRunner: PHP worker",
+  "license": "MIT",
+  "authors": [
+    {
+      "name": "Anton Titov / Wolfy-J",
+      "email": "wolfy.jd@gmail.com"
+    },
+    {
+      "name": "RoadRunner Community",
+      "homepage": "https://github.com/spiral/roadrunner/graphs/contributors"
+    }
+  ],
+  "require": {
+    "php": "^7.4 || ^8.0",
+    "ext-json": "*",
+    "spiral/goridge": "^2.4.2"
+  },
+  "require-dev": {
+    "phpstan/phpstan": "~0.12"
+  },
+  "scripts": {
+    "analyze": "phpstan analyze -c ./phpstan.neon.dist --no-progress --ansi"
+  },
+  "autoload": {
+    "psr-4": {
+      "Spiral\\RoadRunner\\": "src/"
+    }
+  }
+}
