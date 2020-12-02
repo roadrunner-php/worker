@@ -1,10 +1,9 @@
 <?php
 
 /**
- * Spiral Framework.
+ * Dead simple, high performance, drop-in bridge to Golang RPC with zero dependencies
  *
- * @license   MIT
- * @author    Anton Titov (Wolfy-J)
+ * @author Wolfy-J
  */
 
 declare(strict_types=1);
@@ -16,9 +15,16 @@ final class Message
     public const ERROR   = 8;
     public const CONTROL = 16;
 
+    /** @var string|null */
     public ?string $body;
+
+    /** @var int */
     public int     $flags;
 
+    /**
+     * @param string $body
+     * @param int    $flags
+     */
     public function __construct(string $body, int $flags = 0)
     {
         $this->body = $body;

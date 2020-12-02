@@ -9,8 +9,9 @@
 
 declare(strict_types=1);
 
+namespace Spiral\Goridge\RPC\Exception;
 
-class RawCodec
+class CodecException extends \RuntimeException
 {
 
 }

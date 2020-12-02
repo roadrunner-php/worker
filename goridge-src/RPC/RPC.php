@@ -1,15 +1,14 @@
 <?php
 
 /**
- * Spiral Framework.
+ * Dead simple, high performance, drop-in bridge to Golang RPC with zero dependencies
  *
- * @license   MIT
- * @author    Anton Titov (Wolfy-J)
+ * @author Wolfy-J
  */
 
 declare(strict_types=1);
 
-namespace Spiral\Goridge;
+namespace Spiral\Goridge\RPC;
 
 class RPC implements RPCInterface
 {
@@ -19,6 +18,10 @@ class RPC implements RPCInterface
     /** @var positive-int */
     private static int $seq = 0;
 
+    /**
+     * @param RelayInterface      $relay
+     * @param CodecInterface|null $codec
+     */
     public function __construct(RelayInterface $relay, CodecInterface $codec = null)
     {
         $this->relay = $relay;

@@ -9,9 +9,9 @@
 
 declare(strict_types=1);
 
-namespace Spiral\Goridge;
+namespace Spiral\Goridge\RPC\Exception;
 
-interface RPCInterface
+class RPCException extends \RuntimeException
 {
-    public function call(string $method, $payload);
+
 }
