@@ -10,71 +10,85 @@ declare(strict_types=1);
 
 namespace Spiral\Goridge\RPC;
 
+use Spiral\Goridge\Exception\GoridgeException;
+use Spiral\Goridge\Message;
+use Spiral\Goridge\RelayInterface as Relay;
+use Spiral\Goridge\RPC\Codec\RawCodec;
+use Spiral\Goridge\RPC\Exception\RPCException;
+use Spiral\Goridge\StringableRelayInterface;
+
 class RPC implements RPCInterface
 {
-    private RelayInterface  $relay;
-    private CodecInterface  $codec;
+    private Relay          $relay;
+    private CodecInterface $codec;
+    private ?string        $service;
 
     /** @var positive-int */
     private static int $seq = 0;
 
     /**
-     * @param RelayInterface      $relay
+     * @param Relay               $relay
      * @param CodecInterface|null $codec
      */
-    public function __construct(RelayInterface $relay, CodecInterface $codec = null)
+    public function __construct(Relay $relay, CodecInterface $codec = null)
     {
         $this->relay = $relay;
-        $this->codec = $codec ?? new \RawCodec();
+        $this->codec = $codec ?? new RawCodec();
     }
 
+    /**
+     * Create RPC instance with service specific prefix.
+     *
+     * @param string $service
+     * @return RPCInterface
+     */
+    public function withServicePrefix(string $service): RPCInterface
+    {
+        $rpc = clone $this;
+        $rpc->service = $service;
+
+        return $rpc;
+    }
+
+    /**
+     * Create RPC instance with service specific codec.
+     *
+     * @param CodecInterface $codec
+     * @return RPCInterface
+     */
+    public function withCodec(CodecInterface $codec): RPCInterface
+    {
+        $rpc = clone $this;
+        $rpc->codec = $codec;
+
+        return $rpc;
+    }
+
+    /**
+     * Invoke remove RoadRunner service method using given payload (depends on codec).
+     *
+     * @param string $method
+     * @param mixed  $payload
+     * @return mixed
+     * @throws GoridgeException
+     * @throws RPCException
+     */
     public function call(string $method, $payload)
     {
-        $header = $method . pack('P', self::$seq);
-        if (!$this->relay instanceof SendPackageRelayInterface) {
-            $this->relay->send($header, Relay::PAYLOAD_CONTROL | Relay::PAYLOAD_RAW);
+        $this->relay->send(...$this->packRequest($method, $payload));
+
+        // wait for the header confirmation
+        $header = $this->relay->waitMessage();
+
+        if (!($header->flags & Message::CONTROL)) {
+            throw new Exception\RPCException('rpc response header is missing');
         }
 
-        if ($flags & Relay::PAYLOAD_RAW && is_scalar($payload)) {
-            if (!$this->relay instanceof SendPackageRelayInterface) {
-                $this->relay->send((string) $payload, $flags);
-            } else {
-                $this->relay->sendPackage(
-                    $header,
-                    Relay::PAYLOAD_CONTROL | Relay::PAYLOAD_RAW,
-                    (string) $payload,
-                    $flags
-                );
-            }
-        } else {
-            $body = json_encode($payload);
-            if ($body === false) {
-                throw new Exceptions\ServiceException(
-                    sprintf(
-                        'json encode: %s',
-                        json_last_error_msg()
-                    )
-                );
-            }
-
-            if (!$this->relay instanceof SendPackageRelayInterface) {
-                $this->relay->send($body);
-            } else {
-                $this->relay->sendPackage($header, Relay::PAYLOAD_CONTROL | Relay::PAYLOAD_RAW, $body);
-            }
-        }
-
-        $body = (string) $this->relay->receiveSync($flags);
-
-        if (!($flags & Relay::PAYLOAD_CONTROL)) {
-            throw new Exceptions\TransportException('rpc response header is missing');
-        }
-
-        $rpc = unpack('Ps', substr($body, -8));
-        $rpc['m'] = substr($body, 0, -8);
+        $rpc = unpack('Ps', substr($header->body, -8));
+        $rpc['m'] = substr($header->body, 0, -8);
 
         if ($rpc['m'] !== $method || $rpc['s'] !== self::$seq) {
-            throw new Exceptions\TransportException(
+            throw new Exception\RPCException(
                 sprintf(
                     'rpc method call, expected %s:%d, got %s%d',
                     $method,
@@ -85,29 +99,24 @@ class RPC implements RPCInterface
             );
         }
 
-        // request id++
         self::$seq++;
 
-        // wait for the response
-        $body = (string) $this->relay->receiveSync($flags);
+        $response = $this->relay->waitMessage();
 
-        return $this->handleBody($body, $flags);
+        return $this->decodeResponse($response->body, $response->flags);
     }
 
     /**
-     * Handle response body.
-     *
      * @param string $body
      * @param int    $flags
-     *
      * @return mixed
      *
-     * @throws Exceptions\ServiceException
+     * @throws Exception\ServiceException
      */
-    protected function handleBody(string $body, int $flags)
+    private function decodeResponse(string $body, int $flags)
     {
-        if ($flags & Relay::PAYLOAD_ERROR && $flags & Relay::PAYLOAD_RAW) {
-            throw new Exceptions\ServiceException(
+        if ($flags & Message::ERROR) {
+            throw new Exception\ServiceException(
                 sprintf(
                     "error '$body' on '%s'",
                     $this->relay instanceof StringableRelayInterface ? (string) $this->relay : get_class($this->relay)
@@ -115,10 +124,19 @@ class RPC implements RPCInterface
             );
         }
 
-        if ($flags & Relay::PAYLOAD_RAW) {
-            return $body;
-        }
+        return $this->codec->decode($body);
+    }
 
-        return json_decode($body, true);
+    /**
+     * @param string $method
+     * @param mixed  $payload
+     * @return Message[]
+     */
+    private function packRequest(string $method, $payload): array
+    {
+        return [
+            new Message($method . pack('P', self::$seq), Message::CONTROL),
+            new Message(pack('C', $this->codec->getIndex()) . $this->codec->encode($payload))
+        ];
     }
 }

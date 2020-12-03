@@ -11,6 +11,7 @@ declare(strict_types=1);
 namespace Spiral\Goridge\RPC\Codec;
 
 use Spiral\Goridge\RPC\CodecInterface;
+use Spiral\Goridge\RPC\Exception\CodecException;
 
 final class JsonCodec implements CodecInterface
 {
@@ -30,7 +31,15 @@ final class JsonCodec implements CodecInterface
      */
     public function encode($payload): string
     {
-        return json_encode($payload);
+        $result = json_encode($payload);
+        if ($result === false) {
+            $lastError = json_last_error_msg();
+            if ($lastError !== null) {
+                throw new CodecException(sprintf('json encode: %s', $lastError));
+            }
+        }
+
+        return $result;
     }
 
     /**
