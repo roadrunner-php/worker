@@ -7,7 +7,7 @@
  */
 declare(strict_types=1);
 
-namespace Spiral\RoadRunner;
+namespace Spiral\RoadRunner\Http;
 
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestFactoryInterface;
@@ -15,13 +15,12 @@ use Psr\Http\Message\ServerRequestInterface;
 use Psr\Http\Message\StreamFactoryInterface;
 use Psr\Http\Message\UploadedFileFactoryInterface;
 use Psr\Http\Message\UploadedFileInterface;
-use Spiral\RoadRunner\Http\HttpWorker;
-use Spiral\RoadRunner\Http\Request;
+use Spiral\RoadRunner\WorkerInterface;
 
 /**
  * Manages PSR-7 request and response.
  */
-class PSR7Client
+class PSR7Worker
 {
     private HttpWorker                    $httpWorker;
     private ServerRequestFactoryInterface $requestFactory;
@@ -54,7 +53,7 @@ class PSR7Client
     }
 
     /**
-     * @return Worker
+     * @return WorkerInterface
      */
     public function getWorker(): WorkerInterface
     {
