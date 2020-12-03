@@ -14,7 +14,6 @@ use Spiral\RoadRunner\Exception\EnvironmentException;
 
 class Environment implements EnvironmentInterface
 {
-    /** @var array */
     private array $env;
 
     /**

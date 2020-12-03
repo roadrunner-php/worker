@@ -29,7 +29,6 @@ class Worker implements WorkerInterface
     // Request graceful worker termination.
     private const STOP_REQUEST = '{"stop":true}';
 
-    /** @var Relay */
     private Relay $relay;
 
     /**

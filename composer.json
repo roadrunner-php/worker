@@ -17,7 +17,7 @@
     "php": "^7.4 || ^8.0",
     "ext-json": "*",
     "ext-sockets": "*",
-    "spiral/goridge": "^2.4.2"
+    "psr/http-factory": "^1.0"
   },
   "require-dev": {
     "phpstan/phpstan": "~0.12",

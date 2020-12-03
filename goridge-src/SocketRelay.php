@@ -27,20 +27,14 @@ class SocketRelay extends Relay implements StringableRelayInterface
     public const SOCK_TCP  = 0;
     public const SOCK_UNIX = 1;
 
-    /** @var string */
     private string $address;
-
-    /** @var int|null */
-    private ?int $port;
-
-    /** @var int */
-    private int $type;
+    private bool   $connected = false;
+    private ?int   $port;
+    private int    $type;
 
     /** @var resource */
     private $socket;
 
-    /** @var bool */
-    private bool $connected = false;
 
     /**
      * Example:
