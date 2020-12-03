@@ -1,14 +1,14 @@
 <?php
 
 /**
- * Spiral Framework.
+ * High-performance PHP process supervisor and load balancer written in Go.
  *
- * @license   MIT
- * @author    Anton Titov (Wolfy-J)
+ * @author Wolfy-J
  */
+
 declare(strict_types=1);
 
-namespace Spiral\RoadRunner;
+namespace Spiral\RoadRunner\Metrics;
 
 use Spiral\RoadRunner\Exception\MetricException;
 

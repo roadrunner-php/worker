@@ -1,18 +1,16 @@
 <?php
 
 /**
- * Spiral Framework.
+ * High-performance PHP process supervisor and load balancer written in Go.
  *
- * @license   MIT
- * @author    Anton Titov (Wolfy-J)
+ * @author Wolfy-J
  */
+
 declare(strict_types=1);
 
-namespace Spiral\RoadRunner;
+namespace Spiral\RoadRunner\Metrics;
 
-use Spiral\Goridge\Exception\RPCException;
 use Spiral\Goridge\RPC;
-use Spiral\RoadRunner\Exception\MetricException;
 
 /**
  * Application metrics.
@@ -25,7 +23,7 @@ final class Metrics implements MetricsInterface
     /**
      * @param RPC $rpc
      */
-    public function __construct(RPC $rpc)
+    public function __construct(RPC\RPCInterface $rpc)
     {
         $this->rpc = $rpc;
     }
