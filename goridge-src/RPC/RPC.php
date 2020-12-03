@@ -134,6 +134,10 @@ class RPC implements RPCInterface
      */
     private function packRequest(string $method, $payload): array
     {
+        if ($this->service !== null) {
+            $method = $this->service . '.' . ucfirst($method);
+        }
+
         return [
             new Message($method . pack('P', self::$seq), Message::CONTROL),
             new Message(pack('C', $this->codec->getIndex()) . $this->codec->encode($payload))
