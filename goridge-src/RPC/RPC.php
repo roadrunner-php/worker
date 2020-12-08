@@ -11,7 +11,7 @@ declare(strict_types=1);
 namespace Spiral\Goridge\RPC;
 
 use Spiral\Goridge\Exception\GoridgeException;
-use Spiral\Goridge\Message;
+use Spiral\Goridge\Frame;
 use Spiral\Goridge\RelayInterface as Relay;
 use Spiral\Goridge\RPC\Codec\RawCodec;
 use Spiral\Goridge\RPC\Exception\RPCException;
@@ -78,9 +78,9 @@ class RPC implements RPCInterface
         $this->relay->send(...$this->packRequest($method, $payload));
 
         // wait for the header confirmation
-        $header = $this->relay->waitMessage();
+        $header = $this->relay->waitFrame();
 
-        if (!($header->flags & Message::CONTROL)) {
+        if (!($header->flags & Frame::CONTROL)) {
             throw new Exception\RPCException('rpc response header is missing');
         }
 
@@ -101,7 +101,7 @@ class RPC implements RPCInterface
 
         self::$seq++;
 
-        $response = $this->relay->waitMessage();
+        $response = $this->relay->waitFrame();
 
         return $this->decodeResponse($response->body, $response->flags);
     }
@@ -115,7 +115,7 @@ class RPC implements RPCInterface
      */
     private function decodeResponse(string $body, int $flags)
     {
-        if ($flags & Message::ERROR) {
+        if ($flags & Frame::ERROR) {
             throw new Exception\ServiceException(
                 sprintf(
                     "error '$body' on '%s'",
@@ -130,7 +130,7 @@ class RPC implements RPCInterface
     /**
      * @param string $method
      * @param mixed  $payload
-     * @return Message[]
+     * @return Frame[]
      */
     private function packRequest(string $method, $payload): array
     {
@@ -139,8 +139,19 @@ class RPC implements RPCInterface
         }
 
         return [
-            new Message($method . pack('P', self::$seq), Message::CONTROL),
-            new Message(pack('C', $this->codec->getIndex()) . $this->codec->encode($payload))
+            new Frame(pack('P', self::$seq) . $method, Frame::CONTROL),
+            new Frame(pack('C', $this->codec->getIndex()) . $this->codec->encode($payload))
         ];
+    }
+
+    /**
+     * @param string              $connection
+     * @param CodecInterface|null $codec
+     * @return RPCInterface
+     */
+    public static function create(string $connection, CodecInterface $codec = null): RPCInterface
+    {
+        $relay = \Spiral\Goridge\Relay::create($connection);
+        return new static($relay, $codec);
     }
 }

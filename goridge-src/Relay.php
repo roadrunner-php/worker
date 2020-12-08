@@ -105,10 +105,10 @@ abstract class Relay implements RelayInterface
     }
 
     /**
-     * @param Message $message
+     * @param Frame $message
      * @return string
      */
-    protected static function packMessage(Message $message): string
+    protected static function packMessage(Frame $message): string
     {
         $size = $message->body === null ? 0 : strlen($message->body);
 

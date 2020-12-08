@@ -16,12 +16,12 @@ namespace Spiral\Goridge;
 interface RelayInterface
 {
     /**
-     * @return Message|null
+     * @return Frame|null
      */
-    public function waitMessage(): ?Message;
+    public function waitFrame(): ?Frame;
 
     /**
-     * @param Message ...$message
+     * @param Frame $frame
      */
-    public function send(Message ...$message): void;
+    public function send(Frame $frame): void;
 }

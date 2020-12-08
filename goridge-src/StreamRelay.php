@@ -62,10 +62,10 @@ class StreamRelay extends Relay
      * {@inheritdoc}
      * @return self
      */
-    public function send(Message ...$message): void
+    public function send(Frame $frame): void
     {
         $body = '';
-        foreach ($message as $msg) {
+        foreach ($frame as $msg) {
             $body .= self::packMessage($msg);
         }
 
@@ -77,9 +77,9 @@ class StreamRelay extends Relay
     /**
      * {@inheritdoc}
      */
-    public function waitMessage(): Message
+    public function waitFrame(): Frame
     {
-        $msg = new Message(null, 0);
+        $msg = new Frame(null, 0);
 
         $prefix = $this->fetchPrefix();
         $msg->flags = $prefix['flags'];

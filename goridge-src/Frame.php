@@ -10,7 +10,7 @@ declare(strict_types=1);
 
 namespace Spiral\Goridge;
 
-final class Message
+final class Frame
 {
     public const ERROR   = 8;
     public const CONTROL = 16;

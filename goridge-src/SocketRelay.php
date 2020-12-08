@@ -140,13 +140,13 @@ class SocketRelay extends Relay implements StringableRelayInterface
     }
 
     /**
-     * @return Message|null
+     * @return Frame|null
      */
-    public function waitMessage(): ?Message
+    public function waitFrame(): ?Frame
     {
         $this->connect();
 
-        $msg = new Message(null, 0);
+        $msg = new Frame(null, 0);
 
         $prefix = $this->fetchPrefix();
         $msg->flags = $prefix['flags'];
@@ -179,14 +179,14 @@ class SocketRelay extends Relay implements StringableRelayInterface
     }
 
     /**
-     * @param Message ...$message
+     * @param Frame ...$frame
      */
-    public function send(Message ...$message): void
+    public function send(Frame $frame): void
     {
         $this->connect();
 
         $body = '';
-        foreach ($message as $msg) {
+        foreach ($frame as $msg) {
             $body .= self::packMessage($msg);
         }
 
