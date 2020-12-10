@@ -13,11 +13,13 @@
       "homepage": "https://github.com/spiral/roadrunner/graphs/contributors"
     }
   ],
+  "minimum-stability": "beta",
   "require": {
     "php": "^7.4 || ^8.0",
     "ext-json": "*",
     "ext-sockets": "*",
-    "psr/http-factory": "^1.0"
+    "psr/http-factory": "^1.0",
+    "spiral/goridge": ">=3.0"
   },
   "require-dev": {
     "phpstan/phpstan": "~0.12",

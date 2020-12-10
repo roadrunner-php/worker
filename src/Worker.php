@@ -11,7 +11,7 @@ declare(strict_types=1);
 namespace Spiral\RoadRunner;
 
 use Spiral\Goridge\Exception\GoridgeException;
-use Spiral\Goridge\Message;
+use Spiral\Goridge\Frame;
 use Spiral\Goridge\RelayInterface as Relay;
 use Spiral\RoadRunner\Exception\EnvironmentException;
 use Spiral\RoadRunner\Exception\RoadRunnerException;
@@ -48,12 +48,20 @@ class Worker implements WorkerInterface
      */
     public function waitPayload(): ?Payload
     {
-        $header = null;
-        if (!$this->waitHeader($header)) {
-            return null;
+        $frame = $this->relay->waitFrame();
+
+        if ($frame->hasFlag(Frame::CONTROL)) {
+            $continue = $this->handleControl(substr($frame->payload, 0, $frame->options[0]));
+
+            if (!$continue) {
+                return $this->waitPayload();
+            }
         }
 
-        return new Payload($this->relay->receiveSync(), $header);
+        return new Payload(
+            substr($frame->payload, $frame->options[0]),
+            substr($frame->payload, 0, $frame->options[0])
+        );
     }
 
     /**
@@ -79,7 +87,7 @@ class Worker implements WorkerInterface
      */
     public function error(string $message): void
     {
-        $this->relay->send(new Message($message, Message::ERROR));
+        $this->relay->send(new Frame($message, [], Frame::ERROR));
     }
 
     /**
@@ -103,32 +111,10 @@ class Worker implements WorkerInterface
      */
     public function send(string $body, ?string $context): void
     {
-        $this->relay->send(
-            new Message((string) $context, Message::CONTROL),
-            new Message((string) $body)
-        );
-    }
-
-    /**
-     * @param string|null $header
-     * @return bool
-     *
-     * @throws GoridgeException
-     * @throws RoadRunnerException
-     */
-    private function waitHeader(?string &$header): bool
-    {
-        $header = $this->relay->receiveSync($flags);
-        if (!$flags & Message::CONTROL) {
-            // got the beginning of the frame
-            return true;
-        }
-
-        if (!$this->handleControl($header)) {
-            return false;
-        }
-
-        return $this->waitHeader($header);
+        $this->relay->send(new Frame(
+            (string) $context . $body,
+            [strlen((string) $context)]
+        ));
     }
 
     /**
@@ -148,7 +134,7 @@ class Worker implements WorkerInterface
 
         switch (true) {
             case !empty($p['pid']):
-                $this->relay->send(new Message(sprintf('{"pid":%s}', getmypid()), Message::CONTROL));
+                $this->relay->send(new Frame(sprintf('{"pid":%s}', getmypid()), [], Frame::CONTROL));
                 return true;
 
             case !empty($p['stop']):
