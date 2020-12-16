@@ -15,10 +15,9 @@
   ],
   "minimum-stability": "beta",
   "require": {
-    "php": "^7.4 || ^8.0",
+    "php": ">=7.4",
     "ext-json": "*",
     "ext-sockets": "*",
-    "psr/http-factory": "^1.0",
     "spiral/goridge": ">=3.0"
   },
   "require-dev": {

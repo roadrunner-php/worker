@@ -51,10 +51,12 @@ class Worker implements WorkerInterface
         $frame = $this->relay->waitFrame();
 
         if ($frame->hasFlag(Frame::CONTROL)) {
-            $continue = $this->handleControl(substr($frame->payload, 0, $frame->options[0]));
+            $continue = $this->handleControl($frame->payload);
 
-            if (!$continue) {
+            if ($continue) {
                 return $this->waitPayload();
+            } else {
+                return null;
             }
         }
 
@@ -109,7 +111,7 @@ class Worker implements WorkerInterface
      * @param string|null $context
      * @throws GoridgeException
      */
-    public function send(string $body, ?string $context): void
+    public function send(string $body, string $context = null): void
     {
         $this->relay->send(new Frame(
             (string) $context . $body,
@@ -133,11 +135,11 @@ class Worker implements WorkerInterface
         }
 
         switch (true) {
-            case !empty($p['pid']):
+            case !empty($command['pid']):
                 $this->relay->send(new Frame(sprintf('{"pid":%s}', getmypid()), [], Frame::CONTROL));
                 return true;
 
-            case !empty($p['stop']):
+            case !empty($command['stop']):
                 return false;
 
             default:
