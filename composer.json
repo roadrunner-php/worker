@@ -18,11 +18,12 @@
     "php": ">=7.4",
     "ext-json": "*",
     "ext-sockets": "*",
-    "spiral/goridge": ">=3.0"
+    "spiral/goridge": ">=3.0",
+    "symfony/console": "^2.5.0 || ^3.0.0 || ^4.0.0 || ^5.0.0",
+    "composer/package-versions-deprecated": "^1.8"
   },
   "require-dev": {
-    "phpstan/phpstan": "~0.12",
-    "phpunit/phpunit": "~8.0"
+    "phpstan/phpstan": "~0.12"
   },
   "scripts": {
     "analyze": "phpstan analyze -c ./phpstan.neon.dist --no-progress --ansi"
@@ -31,5 +32,8 @@
     "psr-4": {
       "Spiral\\RoadRunner\\": "src/"
     }
-  }
+  },
+  "bin": [
+    "bin/rr"
+  ]
 }

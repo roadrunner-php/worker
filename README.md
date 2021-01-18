@@ -25,8 +25,14 @@ RoadRunner includes PSR-7/PSR-17 compatible HTTP and HTTP/2 server and can be us
 
 Repository:
 --------
-This repository contains common codebase for all binary roadrunner workers. Check [spiral/roadrunner](https://github.com/spiral/roadrunner) to access application
+This repository contains the common codebase for all binary roadrunner workers. Check [spiral/roadrunner](https://github.com/spiral/roadrunner) to access application
 server and [spiral/roadrunner-http](https://github.com/spiral/roadrunner-http) for PSR-7 compatible worker.
+
+To download latest version of application server:
+
+```bash
+$ vendor/bin/rr get-binary
+```
 
 Example:
 -------
@@ -41,6 +47,10 @@ include "vendor/autoload.php";
 // auto-configuration
 $worker = \Spiral\RoadRunner\Worker::create();
 ```
+
+Testing:
+--------
+This codebase is automatically tested via host repository - [spiral/roadrunner](https://github.com/spiral/roadrunner).
 
 License:
 --------
