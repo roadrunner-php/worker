@@ -1,35 +1,36 @@
 <?php
 
 /**
- * High-performance PHP process supervisor and load balancer written in Go.
+ * High-performance PHP process supervisor and load balancer written in Go
  *
  * @author Wolfy-J
  */
-
 declare(strict_types=1);
 
 namespace Spiral\RoadRunner;
 
-use Spiral\Goridge\Exception\GoridgeException;
-use Spiral\Goridge\Frame;
+use Spiral\Goridge\Exceptions\GoridgeException;
 use Spiral\Goridge\RelayInterface as Relay;
-use Spiral\RoadRunner\Exception\EnvironmentException;
+use Spiral\Goridge\SendPackageRelayInterface;
 use Spiral\RoadRunner\Exception\RoadRunnerException;
 
 /**
  * Accepts connection from RoadRunner server over given Goridge relay.
  *
- * $worker = Worker::create();
- * while ($p = $worker->waitPayload()) {
- *      $worker->send(new Payload("DONE", json_encode($context)));
+ * Example:
+ *
+ * $worker = new Worker(new Goridge\StreamRelay(STDIN, STDOUT));
+ * while ($task = $worker->receive($context)) {
+ *      $worker->send("DONE", json_encode($context));
  * }
  */
-class Worker implements WorkerInterface
+class Worker
 {
-    // Request graceful worker termination.
-    private const STOP_REQUEST = '{"stop":true}';
+    // Send as response context to request worker termination
+    public const STOP = '{"stop":true}';
 
-    private Relay $relay;
+    /** @var Relay */
+    private $relay;
 
     /**
      * @param Relay $relay
@@ -40,41 +41,65 @@ class Worker implements WorkerInterface
     }
 
     /**
-     * Wait for incoming payload from the server. Must return null when worker stopped.
+     * Receive packet of information to process, returns null when process must be stopped. Might
+     * return Error to wrap error message from server.
      *
-     * @return Payload|null
+     * @param mixed $header
+     * @return \Error|null|string
+     *
      * @throws GoridgeException
-     * @throws RoadRunnerException
      */
-    public function waitPayload(): ?Payload
+    public function receive(&$header)
     {
-        $frame = $this->relay->waitFrame();
+        $body = $this->relay->receiveSync($flags);
 
-        if ($frame->hasFlag(Frame::CONTROL)) {
-            $continue = $this->handleControl($frame->payload);
-
-            if ($continue) {
-                return $this->waitPayload();
-            } else {
-                return null;
+        if ($flags & Relay::PAYLOAD_CONTROL) {
+            if ($this->handleControl($body, $header, $flags)) {
+                // wait for the next command
+                return $this->receive($header);
             }
+
+            // no context for the termination.
+            $header = null;
+
+            // Expect process termination
+            return null;
         }
 
-        return new Payload(
-            substr($frame->payload, $frame->options[0]),
-            substr($frame->payload, 0, $frame->options[0])
-        );
+        if ($flags & Relay::PAYLOAD_ERROR) {
+            return new \Error((string)$body);
+        }
+
+        return $body;
     }
 
     /**
-     * Respond to the server with the processing result.
+     * Respond to the server with result of task execution and execution context.
      *
-     * @param Payload $payload
-     * @throws GoridgeException
+     * Example:
+     * $worker->respond((string)$response->getBody(), json_encode($response->getHeaders()));
+     *
+     * @param string|null $payload
+     * @param string|null $header
      */
-    public function respond(Payload $payload): void
+    public function send(string $payload = null, string $header = null): void
     {
-        $this->send($payload->body, $payload->header);
+        if (!$this->relay instanceof SendPackageRelayInterface) {
+            if ($header === null) {
+                $this->relay->send('', Relay::PAYLOAD_CONTROL | Relay::PAYLOAD_NONE);
+            } else {
+                $this->relay->send($header, Relay::PAYLOAD_CONTROL | Relay::PAYLOAD_RAW);
+            }
+
+            $this->relay->send((string)$payload, Relay::PAYLOAD_RAW);
+        } else {
+            $this->relay->sendPackage(
+                (string)$header,
+                Relay::PAYLOAD_CONTROL | ($header === null ? Relay::PAYLOAD_NONE : Relay::PAYLOAD_RAW),
+                (string)$payload,
+                Relay::PAYLOAD_RAW
+            );
+        }
     }
 
     /**
@@ -89,7 +114,10 @@ class Worker implements WorkerInterface
      */
     public function error(string $message): void
     {
-        $this->relay->send(new Frame($message, [], Frame::ERROR));
+        $this->relay->send(
+            $message,
+            Relay::PAYLOAD_CONTROL | Relay::PAYLOAD_RAW | Relay::PAYLOAD_ERROR
+        );
     }
 
     /**
@@ -103,60 +131,48 @@ class Worker implements WorkerInterface
      */
     public function stop(): void
     {
-        $this->send("", self::STOP_REQUEST);
+        $this->send(null, self::STOP);
     }
 
     /**
-     * @param string      $body
-     * @param string|null $context
-     * @throws GoridgeException
-     */
-    public function send(string $body, string $context = null): void
-    {
-        $this->relay->send(new Frame(
-            (string) $context . $body,
-            [strlen((string) $context)]
-        ));
-    }
-
-    /**
-     * Return true if continue.
+     * Handles incoming control command payload and executes it if required.
      *
-     * @param string $header
-     * @return bool
+     * @param string $body
+     * @param mixed  $header Exported context (if any).
+     * @param int    $flags
+     * @return bool True when continue processing.
      *
      * @throws RoadRunnerException
      */
-    private function handleControl(string $header): bool
+    private function handleControl(string $body = null, &$header = null, int $flags = 0): bool
     {
-        $command = json_decode($header, true);
-        if ($command === false) {
-            throw new RoadRunnerException('Invalid task header, JSON payload is expected');
+        $header = $body;
+        if ($body === null || $flags & Relay::PAYLOAD_RAW) {
+            // empty or raw prefix
+            return true;
         }
 
-        switch (true) {
-            case !empty($command['pid']):
-                $this->relay->send(new Frame(sprintf('{"pid":%s}', getmypid()), [], Frame::CONTROL));
-                return true;
-
-            case !empty($command['stop']):
-                return false;
-
-            default:
-                throw new RoadRunnerException('Invalid task header, undefined control package');
+        $p = json_decode($body, true);
+        if ($p === false) {
+            throw new RoadRunnerException('invalid task context, JSON payload is expected');
         }
-    }
 
-    /**
-     * Create Worker using global environment configuration.
-     *
-     * @return WorkerInterface
-     * @throws EnvironmentException
-     */
-    public static function create(): WorkerInterface
-    {
-        $env = Environment::fromGlobals();
+        // PID negotiation (socket connections only)
+        if (!empty($p['pid'])) {
+            $this->relay->send(
+                sprintf('{"pid":%s}', getmypid()),
+                Relay::PAYLOAD_CONTROL
+            );
+        }
 
-        return new static(\Spiral\Goridge\Relay::create($env->getRelayAddress()));
+        // termination request
+        if (!empty($p['stop'])) {
+            return false;
+        }
+
+        // parsed header
+        $header = $p;
+
+        return true;
     }
 }

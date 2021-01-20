@@ -14,7 +14,7 @@
 </p>
 
 RoadRunner is an open-source (MIT licensed) high-performance PHP application server, load balancer, and process manager.
-It supports running as a service with the ability to extend its functionality on a per-project basis.
+It supports running as a service with the ability to extend its functionality on a per-project basis. 
 
 RoadRunner includes PSR-7/PSR-17 compatible HTTP and HTTP/2 server and can be used to replace classic Nginx+FPM setup with much greater performance and flexibility.
 
@@ -23,20 +23,57 @@ RoadRunner includes PSR-7/PSR-17 compatible HTTP and HTTP/2 server and can be us
 	<a href="https://roadrunner.dev/docs"><b>Documentation</b></a>
 </p>
 
-Repository:
+Features:
 --------
-This repository contains the common codebase for all binary roadrunner workers. Check [spiral/roadrunner](https://github.com/spiral/roadrunner) to access application
-server and [spiral/roadrunner-http](https://github.com/spiral/roadrunner-http) for PSR-7 compatible worker.
+- Production-ready
+- PCI DSS compliant
+- PSR-7 HTTP server (file uploads, error handling, static files, hot reload, middlewares, event listeners)
+- HTTPS and HTTP/2 support (including HTTP/2 Push, H2C)
+- Fully customizable server, FastCGI support
+- Flexible environment configuration
+- No external PHP dependencies (64bit version required), drop-in (based on [Goridge](https://github.com/spiral/goridge))
+- Load balancer, process manager and task pipeline
+- Frontend agnostic ([Queue](https://github.com/spiral/jobs), PSR-7, [GRPC](https://github.com/spiral/php-grpc), etc)
+- Integrated metrics (Prometheus)
+- Works over TCP, UNIX sockets and standard pipes
+- Automatic worker replacement and safe PHP process destruction
+- Worker create/allocate/destroy timeouts
+- Max jobs per worker
+- Worker lifecycle management (controller) 
+    - maxMemory (graceful stop)
+    - TTL (graceful stop)
+    - idleTTL (graceful stop)
+    - execTTL (brute, max_execution_time)   
+- Payload context and body
+- Protocol, worker and job level error management (including PHP errors)
+- Very fast (~250k rpc calls per second on Ryzen 1700X using 16 threads)
+- Integrations with Symfony, [Laravel](https://github.com/spiral/roadrunner-laravel), Slim, CakePHP, Zend Expressive
+- Application server for [Spiral](https://github.com/spiral/framework)
+- Automatic reloading on file changes
+- Works on Windows (Unix sockets (AF_UNIX) supported on Windows 10)
 
-To download latest version of application server:
+Installation:
+--------
+To install:
 
-```bash
-$ vendor/bin/rr get-binary
+```
+$ composer require spiral/roadrunner
+$ ./vendor/bin/rr get-binary
 ```
 
+> For getting roadrunner binary file you can use our docker image: `spiralscout/roadrunner:X.X.X` (more information about image and tags can be found [here](https://hub.docker.com/r/spiralscout/roadrunner/))
+
+Extensions:
+--------
+| Extension | Current Status        
+| ---       | ---
+spiral/jobs | [![Latest Stable Version](https://poser.pugx.org/spiral/jobs/version)](https://packagist.org/packages/spiral/jobs) [![Build Status](https://travis-ci.org/spiral/jobs.svg?branch=master)](https://travis-ci.org/spiral/jobs) [![Codecov](https://codecov.io/gh/spiral/jobs/branch/master/graph/badge.svg)](https://codecov.io/gh/spiral/jobs/)
+spiral/php-grpc | [![Latest Stable Version](https://poser.pugx.org/spiral/php-grpc/version)](https://packagist.org/packages/spiral/php-grpc) [![Build Status](https://travis-ci.org/spiral/php-grpc.svg?branch=master)](https://travis-ci.org/spiral/php-grpc) [![Codecov](https://codecov.io/gh/spiral/php-grpc/branch/master/graph/badge.svg)](https://codecov.io/gh/spiral/php-grpc/)
+spiral/broadcast | [![Latest Stable Version](https://poser.pugx.org/spiral/broadcast/version)](https://packagist.org/packages/spiral/broadcast) [![Build Status](https://travis-ci.org/spiral/broadcast.svg?branch=master)](https://travis-ci.org/spiral/broadcast) [![Codecov](https://codecov.io/gh/spiral/broadcast/branch/master/graph/badge.svg)](https://codecov.io/gh/spiral/broadcast/)
+spiral/broadcast-ws | [![Latest Stable Version](https://poser.pugx.org/spiral/broadcast-ws/version)](https://packagist.org/packages/spiral/broadcast-ws) [![Build Status](https://travis-ci.org/spiral/broadcast-ws.svg?branch=master)](https://travis-ci.org/spiral/broadcast-ws) [![Codecov](https://codecov.io/gh/spiral/broadcast-ws/branch/master/graph/badge.svg)](https://codecov.io/gh/spiral/broadcast-ws/)
+
 Example:
--------
-To init abstract RoadRunner worker:
+--------
 
 ```php
 <?php
@@ -44,13 +81,38 @@ To init abstract RoadRunner worker:
 ini_set('display_errors', 'stderr');
 include "vendor/autoload.php";
 
-// auto-configuration
-$worker = \Spiral\RoadRunner\Worker::create();
+$relay = new Spiral\Goridge\StreamRelay(STDIN, STDOUT);
+$psr7 = new Spiral\RoadRunner\PSR7Client(new Spiral\RoadRunner\Worker($relay));
+
+while ($req = $psr7->acceptRequest()) {
+    try {
+        $resp = new \Zend\Diactoros\Response();
+        $resp->getBody()->write("hello world");
+
+        $psr7->respond($resp);
+    } catch (\Throwable $e) {
+        $psr7->getWorker()->error((string)$e);
+    }
+}
 ```
 
-Testing:
---------
-This codebase is automatically tested via host repository - [spiral/roadrunner](https://github.com/spiral/roadrunner).
+Configuration can be located in `.rr.yaml` file ([full sample](https://github.com/spiral/roadrunner/blob/master/.rr.yaml)):
+
+```yaml
+http:
+  address:         0.0.0.0:8080
+  workers.command: "php worker.php"
+```
+
+> Read more in [Documentation](https://roadrunner.dev/docs).
+
+Run:
+----
+To run application server:
+
+```
+$ ./rr serve -v -d
+```
 
 License:
 --------

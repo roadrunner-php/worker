@@ -1,15 +1,14 @@
 <?php
 
 /**
- * High-performance PHP process supervisor and load balancer written in Go.
+ * High-performance PHP process supervisor and load balancer written in Go
  *
- * @author Wolfy-J
+ * @author    Wolfy-J
  */
-
 declare(strict_types=1);
 
 namespace Spiral\RoadRunner\Exception;
 
-class RoadRunnerException extends \RuntimeException
+class RoadRunnerException extends \Spiral\RoadRunner\Exceptions\RoadRunnerException
 {
 }
