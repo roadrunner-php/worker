@@ -1,5 +1,5 @@
 {
-  "name": "spiral/roadrunner",
+  "name": "spiral/roadrunner-worker",
   "type": "server",
   "description": "RoadRunner: PHP worker",
   "license": "MIT",
