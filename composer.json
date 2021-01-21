@@ -18,7 +18,6 @@
     "ext-json": "*",
     "ext-sockets": "*",
     "spiral/goridge": ">=3.0",
-    "symfony/console": "^2.5.0 || ^3.0.0 || ^4.0.0 || ^5.0.0",
     "composer/package-versions-deprecated": "^1.8"
   },
   "require-dev": {
