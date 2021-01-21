@@ -13,7 +13,6 @@
       "homepage": "https://github.com/spiral/roadrunner/graphs/contributors"
     }
   ],
-  "minimum-stability": "beta",
   "require": {
     "php": ">=7.4",
     "ext-json": "*",
@@ -32,8 +31,5 @@
     "psr-4": {
       "Spiral\\RoadRunner\\": "src/"
     }
-  },
-  "bin": [
-    "bin/rr"
-  ]
+  }
 }
