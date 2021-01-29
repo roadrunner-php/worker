@@ -61,7 +61,7 @@ require RR_COMPOSER_INSTALL;
 
 
 //
-// Resolve Info version
+// Resolve library version
 //
 $package = Composer\InstalledVersions::getRootPackage();
 $version = $package['pretty_version'] ?? 'dev-master';
