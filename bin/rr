@@ -66,7 +66,7 @@ require RR_COMPOSER_INSTALL;
 $package = Composer\InstalledVersions::getRootPackage();
 $version = $package['pretty_version'] ?? 'dev-master';
 
-$app = new Symfony\Component\Console\Application('Info CLI', $version);
+$app = new Symfony\Component\Console\Application('RoadRunner CLI', $version);
 
 $app->add(new \Spiral\RoadRunner\Console\GetBinaryCommand());
 $app->add(new \Spiral\RoadRunner\Console\VersionsCommand());
