@@ -33,8 +33,7 @@ final class GitHubClient extends Client
      * @var string
      */
     private const DEFAULT_HEADERS = [
-        'accept' => 'application/vnd.github.v3+json',
-        'authorization' => 'token 4099a6ac0abf3ab25a105b9329fd63227ba5ea0e'
+        'accept' => 'application/vnd.github.v3+json'
     ];
 
     /**
