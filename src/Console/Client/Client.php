@@ -11,9 +11,7 @@ declare(strict_types=1);
 
 namespace Spiral\RoadRunner\Console\Client;
 
-use Composer\Semver\VersionParser;
 use Symfony\Component\HttpClient\HttpClient;
-use Symfony\Contracts\HttpClient\Exception\ExceptionInterface;
 use Symfony\Contracts\HttpClient\Exception\TransportExceptionInterface;
 use Symfony\Contracts\HttpClient\HttpClientInterface;
 use Symfony\Contracts\HttpClient\ResponseInterface;
