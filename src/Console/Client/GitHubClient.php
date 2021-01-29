@@ -50,7 +50,6 @@ final class GitHubClient extends Client
     /**
      * @return \Traversable<Version>|Version[]
      * @throws ExceptionInterface
-     * @noinspection PhpImmutablePropertyIsWrittenInspection
      */
     private function readVersions(): \Traversable
     {
