@@ -58,21 +58,21 @@ final class GetBinaryCommand extends Command
         'Available: %s';
 
     /**
-     * @return string[]
+     * @param string|null $name
+     */
+    public function __construct(string $name = null)
+    {
+        parent::__construct($name ?? 'get-binary');
+    }
+
+    /**
+     * {@inheritDoc}
      */
     public function getUsages(): array
     {
         return [
             '$ rr ' . $this->getName() . ' --location=/path/to/binary --os=linux --arch=amd64 --ver="^2.0"',
         ];
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    public function getName(): string
-    {
-        return 'get-binary';
     }
 
     /**

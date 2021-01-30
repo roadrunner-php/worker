@@ -21,27 +21,19 @@ use Symfony\Component\Console\Output\OutputInterface;
 class VersionsCommand extends Command
 {
     /**
-     * @return string
+     * @param string|null $name
      */
-    public function getName(): string
+    public function __construct(string $name = null)
     {
-        return 'versions';
+        parent::__construct($name ?? 'versions');
     }
 
     /**
-     * @return string
+     * {@inheritDoc}
      */
     public function getDescription(): string
     {
         return 'Returns a list of all available RoadRunner versions';
-    }
-
-    /**
-     * @return void
-     */
-    protected function configure(): void
-    {
-        parent::configure();
     }
 
     /**
