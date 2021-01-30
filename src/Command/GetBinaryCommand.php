@@ -90,18 +90,18 @@ final class GetBinaryCommand extends Command
     {
         $repository = $this->getRepository();
 
-        $output->write('  - <info>spiral/roadrunner</info>: Installation...');
+        $output->write(\sprintf('  - <info>%s</info>: Installation...', $repository->getName()));
 
         // List of all available releases
         $releases = $this->findAvailableReleases($repository, $input);
 
         // Matched asset
-        [$asset, $release] = $this->findAsset($releases, $input, $output);
+        [$asset, $release] = $this->findAsset($repository, $releases, $input, $output);
 
         $output->writeln(
-            "\r" . '  - <info>spiral/roadrunner</info>' .
-            ' (<comment>' . $release->getVersion() . '</comment>):' .
-            ' Downloading <info>' . $asset->getName() . '</info>'
+            \sprintf("\r  - <info>%s</info>", $repository->getName()) .
+            \sprintf(' (<comment>%s</comment>):', $release->getVersion()) .
+            \sprintf(' Downloading <info>%s</info>', $asset->getName())
         );
 
         // Create archive
@@ -158,13 +158,18 @@ final class GetBinaryCommand extends Command
     }
 
     /**
+     * @param RepositoryInterface $repo
      * @param ReleasesCollection $releases
      * @param InputInterface $in
      * @param OutputInterface $out
      * @return array{0: AssetInterface, 1: ReleaseInterface}
      */
-    private function findAsset(ReleasesCollection $releases, InputInterface $in, OutputInterface $out): array
-    {
+    private function findAsset(
+        RepositoryInterface $repo,
+        ReleasesCollection $releases,
+        InputInterface $in,
+        OutputInterface $out
+    ): array {
         [$os, $arch] = [$this->getOperatingSystem($in, $out), $this->getProcessorArchitecture($in, $out)];
 
         /** @var ReleaseInterface[] $filtered */
@@ -177,10 +182,11 @@ final class GetBinaryCommand extends Command
             ;
 
             if ($assets->empty()) {
-                $message = '  - <info>spiral/roadrunner</info> (<comment>%s</comment> does not contain an assembly ' .
-                    'that meets the specified criteria (--os=<comment>%s</comment> --arch=<comment>%s</comment>)';
+                // Notice
+                $out->writeln('');
 
-                $out->writeln(\sprintf($message, $release->getVersion(), $os, $arch));
+                $message = '  <fg=white;bg=yellow> %s %s does not contain available assembly (further search in progress) </>';
+                $out->writeln(\sprintf($message, $repo->getName(), $release->getVersion()));
                 continue;
             }
 
