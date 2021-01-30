@@ -10,6 +10,10 @@
 
 declare(strict_types=1);
 
+use Spiral\RoadRunner\Command\GetBinaryCommand;
+use Spiral\RoadRunner\Command\VersionsCommand;
+use Spiral\RoadRunner\Version;
+
 //
 // Checking the PHP working environment.
 //
@@ -60,9 +64,9 @@ if (! defined('RR_COMPOSER_INSTALL')) {
 require RR_COMPOSER_INSTALL;
 
 
-$app = new Symfony\Component\Console\Application('RoadRunner CLI', Spiral\RoadRunner\Version::current());
+$app = new Symfony\Component\Console\Application('RoadRunner CLI', Version::current());
 
-$app->add(new \Spiral\RoadRunner\Console\GetBinaryCommand());
-$app->add(new \Spiral\RoadRunner\Console\VersionsCommand());
+$app->add(new GetBinaryCommand());
+$app->add(new VersionsCommand());
 
 $app->run();

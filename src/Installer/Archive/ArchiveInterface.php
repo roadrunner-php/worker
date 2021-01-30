@@ -9,12 +9,13 @@
 
 declare(strict_types=1);
 
-namespace Spiral\RoadRunner\Console\Client;
+namespace Spiral\RoadRunner\Installer\Archive;
 
-interface ClientInterface
+interface ArchiveInterface
 {
     /**
-     * @return VersionsCollection
+     * @param iterable<string, string> $mappings
+     * @return iterable<\SplFileInfo>
      */
-    public function getVersions(): VersionsCollection;
+    public function extract(iterable $mappings): iterable;
 }

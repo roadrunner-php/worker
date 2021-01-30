@@ -16,9 +16,12 @@ use Composer\InstalledVersions;
 final class Version
 {
     /**
-     * @var string
+     * @var string[]
      */
-    public const PACKAGE_NAME = 'spiral/roadrunner-worker';
+    public const PACKAGE_NAMES = [
+        'spiral/roadrunner',
+        'spiral/roadrunner-worker',
+    ];
 
     /**
      * @var string
@@ -30,6 +33,28 @@ final class Version
      */
     public static function current(): string
     {
-        return InstalledVersions::getPrettyVersion(self::PACKAGE_NAME) ?: self::VERSION_FALLBACK;
+        foreach (self::PACKAGE_NAMES as $name) {
+            if (InstalledVersions::isInstalled($name)) {
+                return InstalledVersions::getPrettyVersion($name);
+            }
+        }
+
+        return self::VERSION_FALLBACK;
+    }
+
+    /**
+     * @return string
+     */
+    public static function constraint(): string
+    {
+        $current = self::current();
+
+        if (\str_contains($current, '.')) {
+            [$major] = \explode('.', $current);
+
+            return \is_numeric($major) ? "$major.*" : '*';
+        }
+
+        return '*';
     }
 }

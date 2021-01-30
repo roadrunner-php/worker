@@ -1,9 +1,10 @@
 <?php
 
 /**
- * High-performance PHP process supervisor and load balancer written in Go.
+ * This file is part of RoadRunner package.
  *
- * @author Wolfy-J
+ * For the full copyright and license information, please view the LICENSE
+ * file that was distributed with this source code.
  */
 
 declare(strict_types=1);
@@ -14,7 +15,9 @@ use Spiral\RoadRunner\Exception\EnvironmentException;
 
 class Environment implements EnvironmentInterface
 {
-    /** @var array */
+    /**
+     * @var array
+     */
     private array $env;
 
     /**
@@ -77,6 +80,6 @@ class Environment implements EnvironmentInterface
      */
     public static function fromGlobals(): EnvironmentInterface
     {
-        return new static(array_merge($_SERVER, $_ENV));
+        return new static(\array_merge($_SERVER, $_ENV));
     }
 }

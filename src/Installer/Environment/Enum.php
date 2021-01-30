@@ -1,7 +1,7 @@
 <?php
 
 /**
- * This file is part of Info package.
+ * This file is part of RoadRunner package.
  *
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
@@ -9,11 +9,11 @@
 
 declare(strict_types=1);
 
-namespace Spiral\RoadRunner\Console\Binary;
+namespace Spiral\RoadRunner\Installer\Environment;
 
 /**
  * @internal Enum is an internal library class, please do not use it in your code.
- * @psalm-internal Spiral\Info\Console
+ * @psalm-internal Spiral\RoadRunner\Installer\Environment
  */
 final class Enum
 {
