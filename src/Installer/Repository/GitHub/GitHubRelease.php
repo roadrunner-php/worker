@@ -26,6 +26,34 @@ use Symfony\Contracts\HttpClient\HttpClientInterface;
 final class GitHubRelease extends Release
 {
     /**
+     * @var HttpClientInterface
+     */
+    private HttpClientInterface $client;
+
+    /**
+     * @param HttpClientInterface $client
+     * @param string $name
+     * @param string $config
+     * @param iterable|array $assets
+     */
+    public function __construct(HttpClientInterface $client, string $name, string $config, iterable $assets = [])
+    {
+        $this->client = $client;
+
+        parent::__construct($name, $config, $assets);
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    public function getConfig(): string
+    {
+        $response = $this->client->request('GET', $this->getConfigUrl());
+
+        return $response->getContent();
+    }
+
+    /**
      * @param GitHubRepository $repository
      * @param HttpClientInterface $client
      * @param GitHubReleaseApiResponse $release
@@ -50,6 +78,6 @@ final class GitHubRelease extends Release
             $release['name']
         ]);
 
-        return new self($release['name'], $config, AssetsCollection::from($instantiator));
+        return new self($client, $release['name'], $config, AssetsCollection::from($instantiator));
     }
 }

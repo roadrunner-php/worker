@@ -41,7 +41,7 @@ abstract class Release implements ReleaseInterface
     /**
      * @var string
      */
-    private string $config;
+    private string $configUrl;
 
     /**
      * @param string $name
@@ -51,7 +51,7 @@ abstract class Release implements ReleaseInterface
     public function __construct(string $name, string $config, iterable $assets = [])
     {
         $this->name = $name;
-        $this->config = $config;
+        $this->configUrl = $config;
 
         $this->assets = AssetsCollection::create($assets);
 
@@ -104,9 +104,9 @@ abstract class Release implements ReleaseInterface
     /**
      * @return string
      */
-    public function getConfig(): string
+    protected function getConfigUrl(): string
     {
-        return $this->config;
+        return $this->configUrl;
     }
 
     /**
