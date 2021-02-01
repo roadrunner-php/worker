@@ -39,12 +39,20 @@ abstract class Release implements ReleaseInterface
     private AssetsCollection $assets;
 
     /**
+     * @var string
+     */
+    private string $config;
+
+    /**
      * @param string $name
+     * @param string $config
      * @param iterable $assets
      */
-    public function __construct(string $name, iterable $assets = [])
+    public function __construct(string $name, string $config, iterable $assets = [])
     {
         $this->name = $name;
+        $this->config = $config;
+
         $this->assets = AssetsCollection::create($assets);
 
         $this->version = $this->parseVersion($name);
@@ -91,6 +99,14 @@ abstract class Release implements ReleaseInterface
     public function getVersion(): string
     {
         return $this->version;
+    }
+
+    /**
+     * @return string
+     */
+    public function getConfig(): string
+    {
+        return $this->config;
     }
 
     /**

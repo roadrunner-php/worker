@@ -89,7 +89,7 @@ final class GitHubRepository implements RepositoryInterface
                 $response = $this->releasesRequest(++$page);
 
                 foreach ($response->toArray() as $data) {
-                    $release = GitHubRelease::fromApiResponse($this->client, $data);
+                    $release = GitHubRelease::fromApiResponse($this, $this->client, $data);
 
                     yield $release->getVersion() => $release;
                 }

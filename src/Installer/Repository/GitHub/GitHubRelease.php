@@ -26,11 +26,12 @@ use Symfony\Contracts\HttpClient\HttpClientInterface;
 final class GitHubRelease extends Release
 {
     /**
+     * @param GitHubRepository $repository
      * @param HttpClientInterface $client
      * @param GitHubReleaseApiResponse $release
      * @return static
      */
-    public static function fromApiResponse(HttpClientInterface $client, array $release): self
+    public static function fromApiResponse(GitHubRepository $repository, HttpClientInterface $client, array $release): self
     {
         if (! isset($release['name'])) {
             throw new \InvalidArgumentException(
@@ -44,6 +45,11 @@ final class GitHubRelease extends Release
             }
         };
 
-        return new self($release['name'], AssetsCollection::from($instantiator));
+        $config = \vsprintf('https://raw.githubusercontent.com/%s/%s/.rr.yaml', [
+            $repository->getName(),
+            $release['name']
+        ]);
+
+        return new self($release['name'], $config, AssetsCollection::from($instantiator));
     }
 }

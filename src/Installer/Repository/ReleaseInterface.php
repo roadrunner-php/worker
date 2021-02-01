@@ -44,4 +44,9 @@ interface ReleaseInterface
      * @return bool
      */
     public function satisfies(string $constraint): bool;
+
+    /**
+     * @return string
+     */
+    public function getConfig(): string;
 }
