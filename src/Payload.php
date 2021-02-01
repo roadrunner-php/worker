@@ -1,20 +1,16 @@
 <?php
 
 /**
- * High-performance PHP process supervisor and load balancer written in Go.
+ * This file is part of RoadRunner package.
  *
- * @author Wolfy-J
+ * For the full copyright and license information, please view the LICENSE
+ * file that was distributed with this source code.
  */
 
 declare(strict_types=1);
 
 namespace Spiral\RoadRunner;
 
-/**
- * Class Payload
- *
- * @package Spiral\RoadRunner
- */
 final class Payload
 {
     /**

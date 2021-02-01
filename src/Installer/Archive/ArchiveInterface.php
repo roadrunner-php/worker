@@ -9,14 +9,13 @@
 
 declare(strict_types=1);
 
-namespace Spiral\RoadRunner;
+namespace Spiral\RoadRunner\Installer\Archive;
 
-interface WorkerAwareInterface
+interface ArchiveInterface
 {
     /**
-     * Returns underlying binary worker.
-     *
-     * @return WorkerInterface
+     * @param iterable<string, string> $mappings
+     * @return iterable<\SplFileInfo>
      */
-    public function getWorker(): WorkerInterface;
+    public function extract(iterable $mappings): iterable;
 }

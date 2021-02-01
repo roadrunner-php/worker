@@ -1,9 +1,10 @@
 <?php
 
 /**
- * High-performance PHP process supervisor and load balancer written in Go.
+ * This file is part of RoadRunner package.
  *
- * @author Wolfy-J
+ * For the full copyright and license information, please view the LICENSE
+ * file that was distributed with this source code.
  */
 
 declare(strict_types=1);
@@ -12,7 +13,8 @@ namespace Spiral\RoadRunner;
 
 use Spiral\Goridge\Exception\GoridgeException;
 use Spiral\Goridge\Frame;
-use Spiral\Goridge\RelayInterface as Relay;
+use Spiral\Goridge\Relay;
+use Spiral\Goridge\RelayInterface;
 use Spiral\RoadRunner\Exception\EnvironmentException;
 use Spiral\RoadRunner\Exception\RoadRunnerException;
 
@@ -29,12 +31,15 @@ class Worker implements WorkerInterface
     // Request graceful worker termination.
     private const STOP_REQUEST = '{"stop":true}';
 
-    private Relay $relay;
+    /**
+     * @var RelayInterface
+     */
+    private RelayInterface $relay;
 
     /**
-     * @param Relay $relay
+     * @param RelayInterface $relay
      */
-    public function __construct(Relay $relay)
+    public function __construct(RelayInterface $relay)
     {
         $this->relay = $relay;
     }
@@ -53,16 +58,12 @@ class Worker implements WorkerInterface
         if ($frame->hasFlag(Frame::CONTROL)) {
             $continue = $this->handleControl($frame->payload);
 
-            if ($continue) {
-                return $this->waitPayload();
-            } else {
-                return null;
-            }
+            return $continue ? $this->waitPayload() : null;
         }
 
         return new Payload(
-            substr($frame->payload, $frame->options[0]),
-            substr($frame->payload, 0, $frame->options[0])
+            \substr($frame->payload, $frame->options[0]),
+            \substr($frame->payload, 0, $frame->options[0])
         );
     }
 
@@ -85,11 +86,11 @@ class Worker implements WorkerInterface
      *
      * $worker->error("invalid payload");
      *
-     * @param string $message
+     * @param string $error
      */
-    public function error(string $message): void
+    public function error(string $error): void
     {
-        $this->relay->send(new Frame($message, [], Frame::ERROR));
+        $this->relay->send(new Frame($error, [], Frame::ERROR));
     }
 
     /**
@@ -103,7 +104,7 @@ class Worker implements WorkerInterface
      */
     public function stop(): void
     {
-        $this->send("", self::STOP_REQUEST);
+        $this->send('', self::STOP_REQUEST);
     }
 
     /**
@@ -113,10 +114,11 @@ class Worker implements WorkerInterface
      */
     public function send(string $body, string $context = null): void
     {
-        $this->relay->send(new Frame(
-            (string) $context . $body,
-            [strlen((string) $context)]
-        ));
+        $frame = new Frame($context . $body, [
+            \strlen((string) $context)
+        ]);
+
+        $this->relay->send($frame);
     }
 
     /**
@@ -129,9 +131,10 @@ class Worker implements WorkerInterface
      */
     private function handleControl(string $header): bool
     {
-        $command = json_decode($header, true);
-        if ($command === false) {
-            throw new RoadRunnerException('Invalid task header, JSON payload is expected');
+        try {
+            $command = \json_decode($header, true, 512, \JSON_THROW_ON_ERROR);
+        } catch (\JsonException $e) {
+            throw new RoadRunnerException('Invalid task header, JSON payload is expected: ' . $e->getMessage());
         }
 
         switch (true) {
@@ -148,7 +151,7 @@ class Worker implements WorkerInterface
     }
 
     /**
-     * Create Worker using global environment configuration.
+     * Create {@see Worker} using global environment ({@see Environment}) configuration.
      *
      * @return WorkerInterface
      * @throws EnvironmentException
@@ -157,6 +160,6 @@ class Worker implements WorkerInterface
     {
         $env = Environment::fromGlobals();
 
-        return new static(\Spiral\Goridge\Relay::create($env->getRelayAddress()));
+        return new static(Relay::create($env->getRelayAddress()));
     }
 }
