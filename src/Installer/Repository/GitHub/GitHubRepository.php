@@ -91,7 +91,7 @@ final class GitHubRepository implements RepositoryInterface
                 foreach ($response->toArray() as $data) {
                     $release = GitHubRelease::fromApiResponse($this->client, $data);
 
-                    yield $release->getName() => $release;
+                    yield $release->getVersion() => $release;
                 }
             } while ($this->hasNextPage($response));
         });
