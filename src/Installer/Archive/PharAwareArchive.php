@@ -36,9 +36,9 @@ abstract class PharAwareArchive extends Archive
 
     /**
      * @param iterable $mappings
-     * @return \Traversable
+     * @return \Generator
      */
-    public function extract(iterable $mappings): \Traversable
+    public function extract(iterable $mappings): \Generator
     {
         $phar = $this->open($this->archive);
 
@@ -49,10 +49,8 @@ abstract class PharAwareArchive extends Archive
         /** @var \PharFileInfo $file */
         foreach (new \RecursiveIteratorIterator($phar) as $file) {
             foreach ($mappings as $from => $to) {
-                if ($file->getFilename() === $from) {
+                if ($file->getFilename() === $from && (yield $file => new \SplFileInfo($to)) !== false) {
                     \copy($file->getPathname(), $to);
-
-                    yield $file => new \SplFileInfo($to);
                 }
             }
         }

@@ -13,6 +13,9 @@
             "homepage": "https://github.com/spiral/roadrunner/graphs/contributors"
         }
     ],
+    "bin": [
+        "bin/rr"
+    ],
     "require": {
         "php": ">=7.4",
         "ext-json": "*",

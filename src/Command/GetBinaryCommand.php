@@ -22,6 +22,7 @@ use Symfony\Component\Console\Helper\ProgressBar;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
+use Symfony\Component\Console\Question\ConfirmationQuestion;
 
 final class GetBinaryCommand extends Command
 {
@@ -88,6 +89,8 @@ final class GetBinaryCommand extends Command
      */
     public function execute(InputInterface $input, OutputInterface $output): int
     {
+        $target = $this->getOutputDirectory($input);
+
         $repository = $this->getRepository();
 
         $output->write(\sprintf('  - <info>%s</info>: Installation...', $repository->getName()));
@@ -104,17 +107,111 @@ final class GetBinaryCommand extends Command
             \sprintf(' Downloading <info>%s</info>', $asset->getName())
         );
 
-        // Create archive
-        $archive = $this->assetToArchive($asset, $output);
+        // Install rr binary
+        $name = $this->installBinary($target, $release, $asset, $input, $output);
 
-        foreach ($this->extract($archive, $input) as $file) {
-            [$name, $path] = [$file->getFilename(), $file->getRealPath() ?: $file->getPathname()];
+        $this->installConfig($target, $release, $input, $output);
 
-            $this->footer($output, $release->getVersion(), $name, $path);
-        }
-
+        $this->footer($output, $name ?? 'rr');
 
         return self::SUCCESS;
+    }
+
+    /**
+     * @param string $target
+     * @param ReleaseInterface $release
+     * @param AssetInterface $asset
+     * @param InputInterface $in
+     * @param OutputInterface $out
+     * @return string|null
+     * @throws \Throwable
+     */
+    private function installBinary(
+        string $target,
+        ReleaseInterface $release,
+        AssetInterface $asset,
+        InputInterface $in,
+        OutputInterface $out
+    ): ?string {
+        $extractor = $this->assetToArchive($asset, $out)
+            ->extract([
+                'rr.exe' => $target . '/rr.exe',
+                'rr'     => $target . '/rr',
+            ])
+        ;
+
+        $name = null;
+        while ($extractor->valid()) {
+            $file = $extractor->current();
+            $name = $file->getFilename();
+
+            if (! $this->checkExisting($file, $in, $out)) {
+                $extractor->send(false);
+                continue;
+            }
+
+            $path = $file->getRealPath() ?: $file->getPathname();
+            $message = '  RoadRunner (<comment>%s</comment>) has been installed into <info>%s</info>';
+
+            $out->writeln(\sprintf($message, $release->getVersion(), $path));
+
+            $extractor->next();
+        }
+
+        return $name;
+    }
+
+    /**
+     * @param string $to
+     * @param ReleaseInterface $from
+     * @param InputInterface $in
+     * @param OutputInterface $out
+     * @return bool
+     */
+    private function installConfig(string $to, ReleaseInterface $from, InputInterface $in, OutputInterface $out): bool
+    {
+        $to .= '/.rr.yaml';
+
+        if (\is_file($to)) {
+            return false;
+        }
+
+        $question = new ConfirmationQuestion(
+            '  Do you want create default ".rr.yaml" configuration file ? [Y/n] '
+        );
+
+        if (! $this->getHelper('question')
+            ->ask($in, $out, $question)) {
+            return false;
+        }
+
+        \file_put_contents($to, $from->getConfig());
+
+        return true;
+    }
+
+    /**
+     * @param \SplFileInfo $binary
+     * @param InputInterface $input
+     * @param OutputInterface $output
+     * @return bool
+     */
+    private function checkExisting(\SplFileInfo $binary, InputInterface $input, OutputInterface $output): bool
+    {
+        if (\is_file($binary->getPathname())) {
+            $output->writeln(' <error> RoadRunner binary file already exists! </error>');
+
+            $question = new ConfirmationQuestion('  Do you want overwrite it? [Y/n] ');
+
+            if (! $this->getHelper('question')
+                ->ask($input, $output, $question)) {
+                $output->writeln(\sprintf('  Skipping RoadRunner (<comment>%s</comment>) installation...',
+                    $binary->getRealPath()));
+                return false;
+            }
+        }
+
+        return true;
     }
 
     /**
@@ -210,6 +307,8 @@ final class GetBinaryCommand extends Command
 
         $progress = new ProgressBar($out);
         $progress->setFormat('  [%bar%] %percent:3s%% (%size%Kb/%total%Kb)');
+        $progress->setMessage('0.00', 'size');
+        $progress->setMessage('?.??', 'total');
         $progress->display();
 
         try {
@@ -233,20 +332,6 @@ final class GetBinaryCommand extends Command
     }
 
     /**
-     * @param ArchiveInterface $archive
-     * @param InputInterface $input
-     * @return iterable<\SplFileInfo>
-     */
-    private function extract(ArchiveInterface $archive, InputInterface $input): iterable
-    {
-        $target = $this->getOutputDirectory($input);
-
-        $files = ['rr' => $target . '/rr', 'rr.exe' => $target . '/rr.exe'];
-
-        return $archive->extract($files);
-    }
-
-    /**
      * Resolves binary output directory.
      *
      * @param InputInterface $input
@@ -265,14 +350,11 @@ final class GetBinaryCommand extends Command
 
     /**
      * @param OutputInterface $output
-     * @param string $version
      * @param string $name
-     * @param string $path
      */
-    private function footer(OutputInterface $output, string $version, string $name, string $path): void
+    private function footer(OutputInterface $output, string $name): void
     {
         $messages = [
-            '  RoadRunner (<comment>' . $version . '</comment>) has been installed into <info>' . $path . '</info>',
             '',
             '  For more detailed documentation, see the <info><href=https://roadrunner.dev>https://roadrunner.dev</></info>',
             '  To run the application, use the following command:',
