@@ -11,7 +11,9 @@ declare(strict_types=1);
 
 namespace Spiral\RoadRunner;
 
+use JetBrains\PhpStorm\Deprecated;
 use Spiral\Goridge\Exception\GoridgeException;
+use Spiral\Goridge\Exception\TransportException;
 use Spiral\Goridge\Frame;
 use Spiral\Goridge\Relay;
 use Spiral\Goridge\RelayInterface;
@@ -21,15 +23,25 @@ use Spiral\RoadRunner\Exception\RoadRunnerException;
 /**
  * Accepts connection from RoadRunner server over given Goridge relay.
  *
+ * <code>
  * $worker = Worker::create();
- * while ($p = $worker->waitPayload()) {
+ *
+ * while ($receivedPayload = $worker->waitPayload()) {
  *      $worker->send(new Payload("DONE", json_encode($context)));
  * }
+ * </code>
  */
 class Worker implements WorkerInterface
 {
-    // Request graceful worker termination.
-    private const STOP_REQUEST = '{"stop":true}';
+    /**
+     * @var int
+     */
+    private const JSON_ENCODE_FLAGS = \JSON_THROW_ON_ERROR | \JSON_PRESERVE_ZERO_FRACTION;
+
+    /**
+     * @var int
+     */
+    private const JSON_DECODE_FLAGS = \JSON_THROW_ON_ERROR;
 
     /**
      * @var RelayInterface
@@ -45,80 +57,84 @@ class Worker implements WorkerInterface
     }
 
     /**
-     * Wait for incoming payload from the server. Must return null when worker stopped.
-     *
-     * @return Payload|null
-     * @throws GoridgeException
-     * @throws RoadRunnerException
+     * {@inheritDoc}
      */
     public function waitPayload(): ?Payload
     {
         $frame = $this->relay->waitFrame();
 
+        $payload = $frame->payload ?? '';
+
         if ($frame->hasFlag(Frame::CONTROL)) {
-            $continue = $this->handleControl($frame->payload);
+            $continue = $this->handleControl($payload);
 
             return $continue ? $this->waitPayload() : null;
         }
 
         return new Payload(
-            \substr($frame->payload, $frame->options[0]),
-            \substr($frame->payload, 0, $frame->options[0])
+            \substr($payload, $frame->options[0]),
+            \substr($payload, 0, $frame->options[0])
         );
     }
 
     /**
-     * Respond to the server with the processing result.
-     *
-     * @param Payload $payload
-     * @throws GoridgeException
+     * {@inheritDoc}
      */
     public function respond(Payload $payload): void
     {
-        $this->send($payload->body, $payload->header);
+        $this->sendRaw($payload->body, $payload->header);
     }
 
     /**
-     * Respond to the server with an error. Error must be treated as TaskError and might not cause
-     * worker destruction.
-     *
-     * Example:
-     *
-     * $worker->error("invalid payload");
-     *
-     * @param string $error
+     * {@inheritDoc}
      */
     public function error(string $error): void
     {
-        $this->relay->send(new Frame($error, [], Frame::ERROR));
+        $frame = new Frame($error, [], Frame::ERROR);
+
+        $this->sendFrame($frame);
     }
 
     /**
-     * Terminate the process. Server must automatically pass task to the next available process.
-     * Worker will receive StopCommand context after calling this method.
-     *
-     * Attention, you MUST use continue; after invoking this method to let rr to properly
-     * stop worker.
-     *
-     * @throws GoridgeException
+     * {@inheritDoc}
      */
     public function stop(): void
     {
-        $this->send('', self::STOP_REQUEST);
+        $this->sendRaw('', $this->encode(['stop' => true]));
     }
 
     /**
-     * @param string      $body
-     * @param string|null $context
-     * @throws GoridgeException
+     * {@inheritDoc}
      */
-    public function send(string $body, string $context = null): void
+    #[Deprecated(replacement: '%class%->respond(new Payload(%parameter0%, %parameter1%))')]
+    public function send(string $body = null, string $header = null): void
     {
-        $frame = new Frame($context . $body, [
-            \strlen((string) $context)
-        ]);
+        $this->sendRaw($body ?? '', $header ?? '');
+    }
 
-        $this->relay->send($frame);
+    /**
+     * @param string $body
+     * @param string $header
+     */
+    private function sendRaw(string $body = '', string $header = ''): void
+    {
+        $frame = new Frame($header . $body, [\strlen($header)]);
+
+        $this->sendFrame($frame);
+    }
+
+    /**
+     * @param Frame $frame
+     */
+    private function sendFrame(Frame $frame): void
+    {
+        try {
+            $this->relay->send($frame);
+        } catch (GoridgeException $e) {
+            throw new TransportException($e->getMessage(), (int)$e->getCode(), $e);
+        } catch (\Throwable $e) {
+            throw new RoadRunnerException($e->getMessage(), (int)$e->getCode(), $e);
+        }
     }
 
     /**
@@ -132,14 +148,15 @@ class Worker implements WorkerInterface
     private function handleControl(string $header): bool
     {
         try {
-            $command = \json_decode($header, true, 512, \JSON_THROW_ON_ERROR);
+            $command = $this->decode($header);
         } catch (\JsonException $e) {
             throw new RoadRunnerException('Invalid task header, JSON payload is expected: ' . $e->getMessage());
         }
 
         switch (true) {
             case !empty($command['pid']):
-                $this->relay->send(new Frame(sprintf('{"pid":%s}', getmypid()), [], Frame::CONTROL));
+                $frame = new Frame($this->encode(['pid' => \getmypid()]), [], Frame::CONTROL);
+                $this->sendFrame($frame);
                 return true;
 
             case !empty($command['stop']):
@@ -151,15 +168,53 @@ class Worker implements WorkerInterface
     }
 
     /**
-     * Create {@see Worker} using global environment ({@see Environment}) configuration.
+     * @param string $json
+     * @return array
+     * @throws \JsonException
+     */
+    private function decode(string $json): array
+    {
+        $result = \json_decode($json, true, 512, self::JSON_DECODE_FLAGS);
+
+        if (! \is_array($result)) {
+            throw new \JsonException('Json message must be an array or object');
+        }
+
+        return $result;
+    }
+
+    /**
+     * @param array $payload
+     * @return string
+     */
+    private function encode(array $payload): string
+    {
+        return \json_encode($payload, self::JSON_ENCODE_FLAGS);
+    }
+
+    /**
+     * Create a new RoadRunner {@see Worker} using global
+     * environment ({@see Environment}) configuration.
      *
-     * @return WorkerInterface
+     * @return self
      * @throws EnvironmentException
      */
-    public static function create(): WorkerInterface
+    public static function create(): self
     {
-        $env = Environment::fromGlobals();
+        return static::createFromEnvironment(
+            Environment::fromGlobals()
+        );
+    }
 
-        return new static(Relay::create($env->getRelayAddress()));
+    /**
+     * Create a new RoadRunner {@see Worker} using passed
+     * environment configuration.
+     *
+     * @param EnvironmentInterface $env
+     * @return self
+     */
+    public static function createFromEnvironment(EnvironmentInterface $env): self
+    {
+        return new self(Relay::create($env->getRelayAddress()));
     }
 }
