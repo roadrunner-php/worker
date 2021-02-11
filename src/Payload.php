@@ -11,21 +11,26 @@ declare(strict_types=1);
 
 namespace Spiral\RoadRunner;
 
+use JetBrains\PhpStorm\Immutable;
+
+#[Immutable]
 final class Payload
 {
     /**
      * Execution payload (binary).
      *
-     * @var string|null
+     * @psalm-readonly
+     * @var string
      */
-    public ?string $body;
+    public string $body = '';
 
     /**
      * Execution context (binary).
      *
-     * @var string|null
+     * @psalm-readonly
+     * @var string
      */
-    public ?string $header;
+    public string $header = '';
 
     /**
      * @param string|null $body
@@ -33,7 +38,7 @@ final class Payload
      */
     public function __construct(?string $body, ?string $header = null)
     {
-        $this->body = $body;
-        $this->header = $header;
+        $this->body = $body ?? '';
+        $this->header = $header ?? '';
     }
 }
