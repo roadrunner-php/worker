@@ -35,7 +35,7 @@ final class Version
     {
         foreach (self::PACKAGE_NAMES as $name) {
             if (InstalledVersions::isInstalled($name)) {
-                return (string)InstalledVersions::getPrettyVersion($name);
+                return \ltrim((string)InstalledVersions::getPrettyVersion($name), 'v');
             }
         }
 
