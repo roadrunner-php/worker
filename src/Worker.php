@@ -11,7 +11,6 @@ declare(strict_types=1);
 
 namespace Spiral\RoadRunner;
 
-use JetBrains\PhpStorm\Deprecated;
 use Spiral\Goridge\Exception\GoridgeException;
 use Spiral\Goridge\Exception\TransportException;
 use Spiral\Goridge\Frame;
@@ -27,7 +26,7 @@ use Spiral\RoadRunner\Exception\RoadRunnerException;
  * $worker = Worker::create();
  *
  * while ($receivedPayload = $worker->waitPayload()) {
- *      $worker->send(new Payload("DONE", json_encode($context)));
+ *      $worker->respond(new Payload("DONE", json_encode($context)));
  * }
  * </code>
  */
