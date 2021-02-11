@@ -15,7 +15,7 @@ interface ArchiveInterface
 {
     /**
      * @param iterable<string, string> $mappings
-     * @return iterable<\SplFileInfo>
+     * @return \Generator<mixed, \SplFileInfo>
      */
-    public function extract(iterable $mappings): iterable;
+    public function extract(iterable $mappings): \Generator;
 }
