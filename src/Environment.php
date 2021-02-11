@@ -13,17 +13,24 @@ namespace Spiral\RoadRunner;
 
 use Spiral\RoadRunner\Exception\EnvironmentException;
 
+/**
+ * @psalm-type EnvironmentVariables = array<string, string> | array {
+ *      RR_MODE?:   string,
+ *      RR_RELAY?:  string,
+ *      RR_RPC?:    string,
+ * }
+ */
 class Environment implements EnvironmentInterface
 {
     /**
-     * @var array
+     * @var EnvironmentVariables
      */
     private array $env;
 
     /**
-     * @param array $env
+     * @param EnvironmentVariables $env
      */
-    public function __construct(array $env)
+    public function __construct(array $env = [])
     {
         $this->env = $env;
     }
@@ -36,7 +43,7 @@ class Environment implements EnvironmentInterface
      */
     public function getMode(): string
     {
-        return $this->getValue('RR_MODE');
+        return $this->get('RR_MODE');
     }
 
     /**
@@ -47,7 +54,7 @@ class Environment implements EnvironmentInterface
      */
     public function getRelayAddress(): string
     {
-        return $this->getValue('RR_RELAY');
+        return $this->get('RR_RELAY', 'pipes');
     }
 
     /**
@@ -58,28 +65,32 @@ class Environment implements EnvironmentInterface
      */
     public function getRPCAddress(): string
     {
-        return $this->getValue('RR_RPC');
+        return $this->get('RR_RPC', 'tcp://127.0.0.1:6001');
     }
 
     /**
      * @param string $name
+     * @param string $default
      * @return string
-     * @throws EnvironmentException
      */
-    private function getValue(string $name): string
+    private function get(string $name, string $default = ''): string
     {
-        if (!isset($this->env[$name])) {
-            throw new EnvironmentException(sprintf("Missing environment value `%s`", $name));
+        if (isset($this->env[$name]) || \array_key_exists($name, $this->env)) {
+            /** @psalm-suppress RedundantCastGivenDocblockType */
+            return (string)$this->env[$name];
         }
 
-        return (string) $this->env[$name];
+        return $default;
     }
 
     /**
-     * @return EnvironmentInterface
+     * @return self
      */
-    public static function fromGlobals(): EnvironmentInterface
+    public static function fromGlobals(): self
     {
-        return new static(\array_merge($_SERVER, $_ENV));
+        /** @var array<string, string> $env */
+        $env = \array_merge($_ENV, $_SERVER);
+
+        return new self($env);
     }
 }
