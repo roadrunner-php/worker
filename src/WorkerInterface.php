@@ -11,16 +11,16 @@ declare(strict_types=1);
 
 namespace Spiral\RoadRunner;
 
-use Spiral\Goridge\Exception\GoridgeException;
+use JetBrains\PhpStorm\Deprecated;
 use Spiral\RoadRunner\Exception\RoadRunnerException;
 
 interface WorkerInterface
 {
     /**
-     * Wait for incoming payload from the server. Must return null when worker stopped.
+     * Wait for incoming payload from the server.
+     * Must return {@see null} when worker stopped.
      *
      * @return Payload|null
-     * @throws GoridgeException
      * @throws RoadRunnerException
      */
     public function waitPayload(): ?Payload;
@@ -29,28 +29,35 @@ interface WorkerInterface
      * Respond to the server with the processing result.
      *
      * @param Payload $payload
-     * @throws GoridgeException
+     * @return void
+     * @throws RoadRunnerException
      */
     public function respond(Payload $payload): void;
 
     /**
-     * Respond to the server with an error. Error must be treated as TaskError and might not cause
-     * worker destruction.
+     * Respond to the server with an error.
      *
-     * Example:
+     * Error must be treated as TaskError and might not cause worker destruction.
      *
-     * $worker->error("invalid payload");
+     * <code>
+     *  $worker->error('Something Went Wrong');
+     * </code>
      *
      * @param string $error
-     * @throws GoridgeException
+     * @return void
+     * @throws RoadRunnerException
      */
     public function error(string $error): void;
 
     /**
-     * Terminate the process. Server must automatically pass task to the next available process.
-     * Worker will receive stop command after calling this method.
+     * Terminate the process. Server must automatically pass task to the next
+     * available process. Worker will receive stop command after calling this
+     * method.
      *
-     * Attention, you MUST use continue; after invoking this method to let rr to properly stop worker.
+     * Attention, you MUST use continue; after invoking this method to let
+     * RoadRunner to properly stop worker.
+     *
+     * @return void
      */
     public function stop(): void;
 }
