@@ -13,18 +13,10 @@
             "homepage": "https://github.com/spiral/roadrunner/graphs/contributors"
         }
     ],
-    "bin": [
-        "bin/rr"
-    ],
     "require": {
         "php": ">=7.4",
         "ext-json": "*",
         "ext-sockets": "*",
-        "symfony/console": "^5.1",
-        "spiral/goridge": ">=3.0",
-        "symfony/http-client": "^5.1",
-        "symfony/polyfill-php80": "^1.22",
-        "composer/semver": "^3.2",
         "composer-runtime-api": "^2.0"
     },
     "require-dev": {
@@ -42,8 +34,11 @@
     },
     "extra": {
         "branch-alias": {
-            "dev-master": "3.0.x-dev"
+            "dev-master": "2.1.x-dev"
         }
+    },
+    "suggest": {
+        "spiral/roadrunner-cli": "Provides RoadRunner installation and management CLI tools"
     },
     "config": {
         "sort-packages": true
