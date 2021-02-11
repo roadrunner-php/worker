@@ -82,7 +82,7 @@ class Worker implements WorkerInterface
      */
     public function respond(Payload $payload): void
     {
-        $this->sendRaw($payload->body, $payload->header);
+        $this->send($payload->body, $payload->header);
     }
 
     /**
@@ -100,28 +100,14 @@ class Worker implements WorkerInterface
      */
     public function stop(): void
     {
-        $this->sendRaw('', $this->encode(['stop' => true]));
-    }
-
-    /**
-     * Respond to the server with result of task execution and execution context.
-     *
-     * @deprecated since RoadRunner 2.0 and will be removed in future releases.
-     *
-     * @param string|null $body
-     * @param string|null $header
-     */
-    #[Deprecated(replacement: '%class%->respond(new Payload(%parameter0%, %parameter1%))')]
-    public function send(string $body = null, string $header = null): void
-    {
-        $this->sendRaw($body ?? '', $header ?? '');
+        $this->send('', $this->encode(['stop' => true]));
     }
 
     /**
      * @param string $body
      * @param string $header
      */
-    private function sendRaw(string $body = '', string $header = ''): void
+    private function send(string $body = '', string $header = ''): void
     {
         $frame = new Frame($header . $body, [\strlen($header)]);
 
