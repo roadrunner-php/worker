@@ -104,7 +104,12 @@ class Worker implements WorkerInterface
     }
 
     /**
-     * {@inheritDoc}
+     * Respond to the server with result of task execution and execution context.
+     *
+     * @deprecated since RoadRunner 2.0 and will be removed in future releases.
+     *
+     * @param string|null $body
+     * @param string|null $header
      */
     #[Deprecated(replacement: '%class%->respond(new Payload(%parameter0%, %parameter1%))')]
     public function send(string $body = null, string $header = null): void
