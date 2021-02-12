@@ -25,33 +25,51 @@ RoadRunner includes PSR-7/PSR-17 compatible HTTP and HTTP/2 server and can be us
 
 Repository:
 --------
-This repository contains the common codebase for all binary roadrunner workers. Check [spiral/roadrunner](https://github.com/spiral/roadrunner) to access application
+
+This repository contains the common codebase for all binary roadrunner workers. 
+Check [spiral/roadrunner](https://github.com/spiral/roadrunner) to access application
 server and [spiral/roadrunner-http](https://github.com/spiral/roadrunner-http) for PSR-7 compatible worker.
+
+You can use the convenient installer to download the latest available compatible version of RoadRunner assembly:
+
+```bash
+$ composer require spiral/roadrunner-cli --dev
+```
 
 To download latest version of application server:
 
 ```bash
-$ vendor/bin/rr get-binary
+$ vendor/bin/rr get
 ```
 
 Example:
 -------
+
 To init abstract RoadRunner worker:
 
 ```php
 <?php
-// worker.php
-ini_set('display_errors', 'stderr');
-include "vendor/autoload.php";
 
-// auto-configuration
+require __DIR__ . '/vendor/autoload.php';
+
+// Create a new Worker from global environment
 $worker = \Spiral\RoadRunner\Worker::create();
+
+while ($data = $worker->waitPayload()) {
+    // Received Payload
+    var_dump($data);
+
+    // Respond Answer
+    $worker->respond(new \Spiral\RoadRunner\Payload('DONE'));
+}
 ```
 
 Testing:
 --------
+
 This codebase is automatically tested via host repository - [spiral/roadrunner](https://github.com/spiral/roadrunner).
 
 License:
 --------
+
 The MIT License (MIT). Please see [`LICENSE`](./LICENSE) for more information. Maintained by [Spiral Scout](https://spiralscout.com).
