@@ -11,7 +11,6 @@ declare(strict_types=1);
 
 namespace Spiral\RoadRunner;
 
-use JetBrains\PhpStorm\Deprecated;
 use Spiral\RoadRunner\Exception\RoadRunnerException;
 
 interface WorkerInterface
