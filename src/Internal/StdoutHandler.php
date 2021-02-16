@@ -79,7 +79,7 @@ final class StdoutHandler
             $isWrite = ($phase & \PHP_OUTPUT_HANDLER_WRITE) === \PHP_OUTPUT_HANDLER_WRITE;
 
             if ($isWrite && $chunk !== '') {
-                $logger->notice($chunk);
+                $logger->debug($chunk);
             }
         }, $chunkSize);
     }
