@@ -76,9 +76,9 @@ final class StdoutHandler
     private static function restreamOutputBuffer(LoggerInterface $logger, int $chunkSize): void
     {
         \ob_start(static function (string $chunk, int $phase) use ($logger): void {
-            $isFlushable = ($phase & \PHP_OUTPUT_HANDLER_FLUSH) === \PHP_OUTPUT_HANDLER_FLUSH;
+            $isWrite = ($phase & \PHP_OUTPUT_HANDLER_WRITE) === \PHP_OUTPUT_HANDLER_WRITE;
 
-            if ($isFlushable && $chunk !== '') {
+            if ($isWrite && $chunk !== '') {
                 $logger->notice($chunk);
             }
         }, $chunkSize);
