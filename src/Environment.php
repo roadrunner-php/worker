@@ -39,7 +39,6 @@ class Environment implements EnvironmentInterface
      * Returns worker mode assigned to the PHP process.
      *
      * @return string
-     * @throws EnvironmentException
      */
     public function getMode(): string
     {
@@ -50,7 +49,6 @@ class Environment implements EnvironmentInterface
      * Address worker should be connected to (or pipes).
      *
      * @return string
-     * @throws EnvironmentException
      */
     public function getRelayAddress(): string
     {
@@ -61,7 +59,6 @@ class Environment implements EnvironmentInterface
      * RPC address.
      *
      * @return string
-     * @throws EnvironmentException
      */
     public function getRPCAddress(): string
     {
