@@ -17,6 +17,7 @@
         "php": ">=7.4",
         "ext-json": "*",
         "ext-sockets": "*",
+        "psr/log": "^1.0",
         "spiral/goridge": "^3.0",
         "composer-runtime-api": "^2.0"
     },

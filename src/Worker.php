@@ -11,13 +11,14 @@ declare(strict_types=1);
 
 namespace Spiral\RoadRunner;
 
+use Psr\Log\LoggerInterface;
 use Spiral\Goridge\Exception\GoridgeException;
 use Spiral\Goridge\Exception\TransportException;
 use Spiral\Goridge\Frame;
 use Spiral\Goridge\Relay;
 use Spiral\Goridge\RelayInterface;
-use Spiral\RoadRunner\Exception\EnvironmentException;
 use Spiral\RoadRunner\Exception\RoadRunnerException;
+use Spiral\RoadRunner\Internal\StdoutHandler;
 
 /**
  * Accepts connection from RoadRunner server over given Goridge relay.
@@ -48,11 +49,30 @@ class Worker implements WorkerInterface
     private RelayInterface $relay;
 
     /**
-     * @param RelayInterface $relay
+     * @var LoggerInterface
      */
-    public function __construct(RelayInterface $relay)
+    private LoggerInterface $logger;
+
+    /**
+     * @param RelayInterface $relay
+     * @param bool $interceptSideEffects
+     */
+    public function __construct(RelayInterface $relay, bool $interceptSideEffects = true)
     {
         $this->relay = $relay;
+        $this->logger = new Logger();
+
+        if ($interceptSideEffects) {
+            StdoutHandler::register($this->logger);
+        }
+    }
+
+    /**
+     * @return LoggerInterface
+     */
+    public function getLogger(): LoggerInterface
+    {
+        return $this->logger;
     }
 
     /**
@@ -186,25 +206,24 @@ class Worker implements WorkerInterface
      * Create a new RoadRunner {@see Worker} using global
      * environment ({@see Environment}) configuration.
      *
+     * @param bool $interceptSideEffects
      * @return self
-     * @throws EnvironmentException
      */
-    public static function create(): self
+    public static function create(bool $interceptSideEffects = true): self
     {
-        return static::createFromEnvironment(
-            Environment::fromGlobals()
-        );
+        return static::createFromEnvironment(Environment::fromGlobals(), $interceptSideEffects);
     }
 
     /**
-     * Create a new RoadRunner {@see Worker} using passed
-     * environment configuration.
+     * Create a new RoadRunner {@see Worker} using passed environment
+     * configuration.
      *
      * @param EnvironmentInterface $env
+     * @param bool $interceptSideEffects
      * @return self
      */
-    public static function createFromEnvironment(EnvironmentInterface $env): self
+    public static function createFromEnvironment(EnvironmentInterface $env, bool $interceptSideEffects = true): self
     {
-        return new self(Relay::create($env->getRelayAddress()));
+        return new self(Relay::create($env->getRelayAddress()), $interceptSideEffects);
     }
 }
