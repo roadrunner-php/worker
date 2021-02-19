@@ -11,26 +11,29 @@ declare(strict_types=1);
 
 namespace Spiral\RoadRunner;
 
-use Spiral\RoadRunner\Exception\EnvironmentException;
+use JetBrains\PhpStorm\ExpectedValues;
+use Spiral\RoadRunner\Environment\Mode;
 
 /**
  * Provides base values to configure roadrunner worker.
+ *
+ * @psalm-import-type ModeType from Mode
+ * @see Mode
  */
 interface EnvironmentInterface
 {
     /**
      * Returns worker mode assigned to the PHP process.
      *
-     * @return string
-     * @throws EnvironmentException
+     * @return ModeType|string
      */
+    #[ExpectedValues(valuesFromClass: Mode::class)]
     public function getMode(): string;
 
     /**
      * Address worker should be connected to (or pipes).
      *
      * @return string
-     * @throws EnvironmentException
      */
     public function getRelayAddress(): string;
 
@@ -38,7 +41,6 @@ interface EnvironmentInterface
      * RPC address.
      *
      * @return string
-     * @throws EnvironmentException
      */
     public function getRPCAddress(): string;
 }
