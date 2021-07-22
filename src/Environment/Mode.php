@@ -25,4 +25,9 @@ interface Mode
      * @var string
      */
     public const MODE_TEMPORAL = 'temporal';
+    
+    /**
+     * @var string
+     */
+    public const MODE_JOBS = 'jobs';
 }
