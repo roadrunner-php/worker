@@ -30,9 +30,9 @@ final class StdoutHandler
         'Please use RoadRunner response object instead';
 
     /**
-     * @var positive-int
+     * @var positive-int|0
      */
-    private const OB_CHUNK_SIZE = 10 * 1024;
+    private const OB_CHUNK_SIZE = 1;
 
     /**
      * @param LoggerInterface $logger
