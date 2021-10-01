@@ -11,7 +11,6 @@ declare(strict_types=1);
 
 namespace Spiral\RoadRunner\Internal;
 
-use Psr\Log\LoggerInterface;
 use Symfony\Component\VarDumper\Dumper\AbstractDumper;
 use Symfony\Component\VarDumper\Dumper\CliDumper;
 use Symfony\Component\VarDumper\Dumper\HtmlDumper;
@@ -25,6 +24,11 @@ final class StdoutHandler
     /**
      * @var string
      */
+    private const PIPE_OUT = 'php://stderr';
+
+    /**
+     * @var string
+     */
     private const ERROR_WRITING_HEADER =
         'Could not explicitly send a headers "%s" using PHP header() function. ' .
         'Please use RoadRunner response object instead';
@@ -35,15 +39,14 @@ final class StdoutHandler
     private const OB_CHUNK_SIZE = 1;
 
     /**
-     * @param LoggerInterface $logger
      * @param positive-int|0 $chunkSize
      */
-    public static function register(LoggerInterface $logger, int $chunkSize = self::OB_CHUNK_SIZE): void
+    public static function register(int $chunkSize = self::OB_CHUNK_SIZE): void
     {
         assert($chunkSize >= 0, 'Invalid chunk size argument value');
 
-        self::restreamOutputBuffer($logger, $chunkSize);
-        self::restreamHeaders($logger);
+        self::restreamOutputBuffer($chunkSize);
+        self::restreamHeaders();
 
         // Vendor packages
         self::restreamSymfonyDumper();
@@ -52,16 +55,15 @@ final class StdoutHandler
     /**
      * Intercept all output headers writing.
      *
-     * @param LoggerInterface $logger
      * @return void
      */
-    private static function restreamHeaders(LoggerInterface $logger): void
+    private static function restreamHeaders(): void
     {
-        \header_register_callback(static function() use ($logger): void {
+        \header_register_callback(static function(): void {
             $headers = \headers_list();
 
             if ($headers !== []) {
-                $logger->warning(self::ERROR_WRITING_HEADER, $headers);
+                \file_put_contents(self::PIPE_OUT, self::ERROR_WRITING_HEADER);
             }
         });
     }
@@ -69,17 +71,16 @@ final class StdoutHandler
     /**
      * Intercept all output buffer write.
      *
-     * @param LoggerInterface $logger
      * @param positive-int|0 $chunkSize
      * @return void
      */
-    private static function restreamOutputBuffer(LoggerInterface $logger, int $chunkSize): void
+    private static function restreamOutputBuffer(int $chunkSize): void
     {
-        \ob_start(static function (string $chunk, int $phase) use ($logger): void {
+        \ob_start(static function (string $chunk, int $phase): void {
             $isWrite = ($phase & \PHP_OUTPUT_HANDLER_WRITE) === \PHP_OUTPUT_HANDLER_WRITE;
 
             if ($isWrite && $chunk !== '') {
-                $logger->debug($chunk);
+                \file_put_contents(self::PIPE_OUT, $chunk);
             }
         }, $chunkSize);
     }
@@ -90,10 +91,9 @@ final class StdoutHandler
     private static function restreamSymfonyDumper(): void
     {
         if (\class_exists(AbstractDumper::class)) {
-            AbstractDumper::$defaultOutput = 'php://stderr';
-
-            CliDumper::$defaultOutput = 'php://stderr';
-            HtmlDumper::$defaultOutput = 'php://stderr';
+            AbstractDumper::$defaultOutput = self::PIPE_OUT;
+            CliDumper::$defaultOutput = self::PIPE_OUT;
+            HtmlDumper::$defaultOutput = self::PIPE_OUT;
         }
     }
 }

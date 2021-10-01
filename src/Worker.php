@@ -63,7 +63,7 @@ class Worker implements WorkerInterface
         $this->logger = new Logger();
 
         if ($interceptSideEffects) {
-            StdoutHandler::register($this->logger);
+            StdoutHandler::register();
         }
     }
 
