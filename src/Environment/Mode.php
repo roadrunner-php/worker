@@ -30,4 +30,9 @@ interface Mode
      * @var string
      */
     public const MODE_JOBS = 'jobs';
+
+    /**
+     * @var string
+     */
+    public const MODE_GRPC = 'grpc';
 }
