@@ -35,4 +35,9 @@ interface Mode
      * @var string
      */
     public const MODE_GRPC = 'grpc';
+
+    /**
+     * @var string
+     */
+    public const MODE_TCP = 'tcp';
 }
