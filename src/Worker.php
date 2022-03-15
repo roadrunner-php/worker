@@ -101,7 +101,7 @@ class Worker implements WorkerInterface
      */
     public function respond(Payload $payload): void
     {
-        $this->send($payload->body, $payload->header);
+        $this->send($payload->body, $payload->header, $payload->chunked);
     }
 
     /**
@@ -122,13 +122,13 @@ class Worker implements WorkerInterface
         $this->send('', $this->encode(['stop' => true]));
     }
 
-    /**
-     * @param string $body
-     * @param string $header
-     */
-    private function send(string $body = '', string $header = ''): void
+    private function send(string $body = '', string $header = '', bool $chunked = false): void
     {
         $frame = new Frame($header . $body, [\strlen($header)]);
+
+        if ($chunked) {
+            $frame->byte10 = Frame::CONNECTION_CHUNKED_OUT;
+        }
 
         $this->sendFrame($frame);
     }

@@ -18,7 +18,7 @@
         "ext-json": "*",
         "ext-sockets": "*",
         "psr/log": "^1.0|^2.0|^3.0",
-        "spiral/goridge": "^3.0",
+        "spiral/goridge": "dev-master#54329bc6b5f6a2c99e6772bd5b20c17fe7f13924",
         "symfony/polyfill-php80": "^1.23",
         "composer-runtime-api": "^2.0"
     },

@@ -32,6 +32,8 @@ final class Payload
      */
     public string $header = '';
 
+    public bool $chunked = false;
+
     /**
      * @param string|null $body
      * @param string|null $header
