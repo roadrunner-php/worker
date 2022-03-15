@@ -28,19 +28,18 @@ final class Payload
      * Execution context (binary).
      *
      * @psalm-readonly
-     * @var string
      */
     public string $header = '';
 
+    /**
+     * @psalm-readonly
+     */
     public bool $chunked = false;
 
-    /**
-     * @param string|null $body
-     * @param string|null $header
-     */
-    public function __construct(?string $body, ?string $header = null)
+    public function __construct(?string $body, ?string $header = null, bool $chunked = false)
     {
         $this->body = $body ?? '';
         $this->header = $header ?? '';
+        $this->chunked = $chunked;
     }
 }
