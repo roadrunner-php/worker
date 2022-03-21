@@ -32,14 +32,17 @@ final class Payload
     public string $header = '';
 
     /**
+     * End of stream.
+     * The {@see true} value means the Payload block is last in the stream.
+     *
      * @psalm-readonly
      */
-    public bool $chunked = false;
+    public bool $eos = true;
 
-    public function __construct(?string $body, ?string $header = null, bool $chunked = false)
+    public function __construct(?string $body, ?string $header = null, bool $eos = true)
     {
         $this->body = $body ?? '';
         $this->header = $header ?? '';
-        $this->chunked = $chunked;
+        $this->eos = $eos;
     }
 }
