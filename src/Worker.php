@@ -101,7 +101,7 @@ class Worker implements WorkerInterface
      */
     public function respond(Payload $payload): void
     {
-        $this->send($payload->body, $payload->header);
+        $this->send($payload->body, $payload->header, $payload->eos);
     }
 
     /**
@@ -123,12 +123,15 @@ class Worker implements WorkerInterface
     }
 
     /**
-     * @param string $body
-     * @param string $header
+     * @param bool $eos End of stream
      */
-    private function send(string $body = '', string $header = ''): void
+    private function send(string $body = '', string $header = '', bool $eos = true): void
     {
         $frame = new Frame($header . $body, [\strlen($header)]);
+
+        if (!$eos) {
+            $frame->byte10 = Frame::BYTE10_STREAM;
+        }
 
         $this->sendFrame($frame);
     }

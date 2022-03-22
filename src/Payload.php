@@ -28,17 +28,21 @@ final class Payload
      * Execution context (binary).
      *
      * @psalm-readonly
-     * @var string
      */
     public string $header = '';
 
     /**
-     * @param string|null $body
-     * @param string|null $header
+     * End of stream.
+     * The {@see true} value means the Payload block is last in the stream.
+     *
+     * @psalm-readonly
      */
-    public function __construct(?string $body, ?string $header = null)
+    public bool $eos = true;
+
+    public function __construct(?string $body, ?string $header = null, bool $eos = true)
     {
         $this->body = $body ?? '';
         $this->header = $header ?? '';
+        $this->eos = $eos;
     }
 }
