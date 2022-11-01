@@ -172,6 +172,17 @@ class Worker implements WorkerInterface
                 $this->sendFrame($frame);
                 return true;
 
+            case !empty($command['master_process']):
+                $pid = pcntl_fork();
+
+                if ($pid == -1) {
+                    throw new RoadRunnerException('Couldn\'t fork currently running process');
+                }
+
+                $frame = new Frame($this->encode(['pid' => $pid]), [], Frame::CONTROL);
+                $this->sendFrame($frame);
+                return true;
+
             case !empty($command['stop']):
                 return false;
 
