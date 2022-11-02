@@ -173,7 +173,7 @@ class Worker implements WorkerInterface
                 return true;
 
             case !empty($command['master_process']):
-                $pid = pcntl_fork();
+                $pid = \pcntl_fork();
 
                 if ($pid == -1) {
                     throw new RoadRunnerException('Couldn\'t fork currently running process');
