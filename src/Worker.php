@@ -172,7 +172,7 @@ class Worker implements WorkerInterface
                 $this->sendFrame($frame);
                 return true;
 
-            case !empty($command['master_process']):
+            case !empty($command['fork']):
                 $pid = \pcntl_fork();
 
                 if ($pid == -1) {
