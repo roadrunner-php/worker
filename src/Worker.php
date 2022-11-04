@@ -173,9 +173,13 @@ class Worker implements WorkerInterface
                 return true;
 
             case !empty($command['fork']):
+                if (!function_exists('pcntl_fork')) {
+                    throw new RoadRunnerException("ext-pcntl should be enabled");
+                }
+
                 $pid = \pcntl_fork();
 
-                if ($pid == -1) {
+                if ($pid === -1) {
                     throw new RoadRunnerException('Couldn\'t fork currently running process');
                 }
 

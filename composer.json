@@ -17,7 +17,6 @@
         "php": ">=7.4",
         "ext-json": "*",
         "ext-sockets": "*",
-        "ext-pcntl": "*",
         "psr/log": "^1.0|^2.0|^3.0",
         "spiral/goridge": "^3.2.0",
         "symfony/polyfill-php80": "^1.23",
