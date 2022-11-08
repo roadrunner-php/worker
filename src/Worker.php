@@ -183,8 +183,13 @@ class Worker implements WorkerInterface
                     throw new RoadRunnerException('Couldn\'t fork currently running process');
                 }
 
-                $frame = new Frame($this->encode(['pid' => $pid]), [], Frame::CONTROL);
-                $this->sendFrame($frame);
+                // send the frame from the parents process
+                // $pid here is the child's PID
+                if ($pid) {
+                    $frame = new Frame($this->encode(['pid' => $pid]), [], Frame::CONTROL);
+                    $this->sendFrame($frame);
+                }
+
                 return true;
 
             case !empty($command['stop']):
