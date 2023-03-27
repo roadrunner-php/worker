@@ -59,4 +59,19 @@ interface WorkerInterface
      * @return void
      */
     public function stop(): void;
+
+    /**
+     * @param class-string<Payload>|null $class
+     *
+     * @return bool Returns {@see true} if worker is ready to accept new payload.
+     */
+    public function hasPayload(string $class = null): bool;
+
+    /**
+     * @param class-string<Payload>|null $class
+     *
+     * @return Payload|null Returns {@see null} if worker is not ready to accept new payload and has no cached payload
+     *         of the given type.
+     */
+    public function getPayload(string $class = null): ?Payload;
 }

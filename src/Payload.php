@@ -13,8 +13,11 @@ namespace Spiral\RoadRunner;
 
 use JetBrains\PhpStorm\Immutable;
 
+/**
+ * @internal
+ */
 #[Immutable]
-final class Payload
+class Payload
 {
     /**
      * Execution payload (binary).
