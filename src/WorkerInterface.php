@@ -1,12 +1,5 @@
 <?php
 
-/**
- * This file is part of RoadRunner package.
- *
- * For the full copyright and license information, please view the LICENSE
- * file that was distributed with this source code.
- */
-
 declare(strict_types=1);
 
 namespace Spiral\RoadRunner;
@@ -19,7 +12,6 @@ interface WorkerInterface
      * Wait for incoming payload from the server.
      * Must return {@see null} when worker stopped.
      *
-     * @return Payload|null
      * @throws RoadRunnerException
      */
     public function waitPayload(): ?Payload;
@@ -27,8 +19,6 @@ interface WorkerInterface
     /**
      * Respond to the server with the processing result.
      *
-     * @param Payload $payload
-     * @return void
      * @throws RoadRunnerException
      */
     public function respond(Payload $payload): void;
@@ -42,8 +32,7 @@ interface WorkerInterface
      *  $worker->error('Something Went Wrong');
      * </code>
      *
-     * @param string $error
-     * @return void
+     * @param non-empty-string $error
      * @throws RoadRunnerException
      */
     public function error(string $error): void;
@@ -55,8 +44,6 @@ interface WorkerInterface
      *
      * Attention, you MUST use continue; after invoking this method to let
      * RoadRunner to properly stop worker.
-     *
-     * @return void
      */
     public function stop(): void;
 

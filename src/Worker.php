@@ -1,12 +1,5 @@
 <?php
 
-/**
- * This file is part of RoadRunner package.
- *
- * For the full copyright and license information, please view the LICENSE
- * file that was distributed with this source code.
- */
-
 declare(strict_types=1);
 
 namespace Spiral\RoadRunner;
@@ -21,6 +14,7 @@ use Spiral\RoadRunner\Exception\RoadRunnerException;
 use Spiral\RoadRunner\Internal\StdoutHandler;
 use Spiral\RoadRunner\Message\Command\GetProcessId;
 use Spiral\RoadRunner\Message\Command\WorkerStop;
+use Spiral\RoadRunner\Message\SkipMessage;
 
 /**
  * Accepts connection from RoadRunner server over given Goridge relay.
@@ -35,33 +29,16 @@ use Spiral\RoadRunner\Message\Command\WorkerStop;
  */
 class Worker implements WorkerInterface
 {
-    /**
-     * @var int
-     */
     private const JSON_ENCODE_FLAGS = \JSON_THROW_ON_ERROR | \JSON_PRESERVE_ZERO_FRACTION;
-
-    /**
-     * @var int
-     */
     private const JSON_DECODE_FLAGS = \JSON_THROW_ON_ERROR;
 
-    /**
-     * @var RelayInterface
-     */
     private RelayInterface $relay;
 
-    /**
-     * @var LoggerInterface
-     */
     private LoggerInterface $logger;
 
     /** @var array<int, Payload> */
     private array $payloads = [];
 
-    /**
-     * @param RelayInterface $relay
-     * @param bool $interceptSideEffects
-     */
     public function __construct(RelayInterface $relay, bool $interceptSideEffects = true)
     {
         $this->relay = $relay;
@@ -72,44 +49,40 @@ class Worker implements WorkerInterface
         }
     }
 
-    /**
-     * @return LoggerInterface
-     */
     public function getLogger(): LoggerInterface
     {
         return $this->logger;
     }
 
-    /**
-     * {@inheritDoc}
-     */
     public function waitPayload(): ?Payload
     {
-        if ($this->payloads !== []) {
-            $payload = \array_shift($this->payloads);
-        } else {
-            $frame = $this->relay->waitFrame();
-            $payload = PayloadFactory::fromFrame($frame);
-        }
+        while (true) {
+            if ($this->payloads !== []) {
+                $payload = \array_shift($this->payloads);
+            } else {
+                $frame = $this->relay->waitFrame();
+                $payload = PayloadFactory::fromFrame($frame);
+            }
 
-        return match (true) {
-            $payload instanceof GetProcessId => $this->sendProcessId()->waitPayload(),
-            $payload instanceof WorkerStop => null,
-            default => $payload,
-        };
+            switch (true) {
+                case $payload::class === Payload::class:
+                    return $payload;
+                case $payload instanceof WorkerStop:
+                    return null;
+                case $payload::class === GetProcessId::class:
+                    $this->sendProcessId();
+                    // no break
+                case $payload instanceof SkipMessage:
+                    continue 2;
+            }
+        }
     }
 
-    /**
-     * {@inheritDoc}
-     */
     public function respond(Payload $payload): void
     {
         $this->send($payload->body, $payload->header, $payload->eos);
     }
 
-    /**
-     * {@inheritDoc}
-     */
     public function error(string $error): void
     {
         $frame = new Frame($error, [], Frame::ERROR);
@@ -117,25 +90,16 @@ class Worker implements WorkerInterface
         $this->sendFrame($frame);
     }
 
-    /**
-     * {@inheritDoc}
-     */
     public function stop(): void
     {
         $this->send('', $this->encode(['stop' => true]));
     }
 
-    /**
-     * {@inheritDoc}
-     */
     public function hasPayload(string $class = null): bool
     {
         return $this->findPayload($class) !== null;
     }
 
-    /**
-     * {@inheritDoc}
-     */
     public function getPayload(string $class = null): ?Payload
     {
         $pos = $this->findPayload($class);
@@ -189,8 +153,6 @@ class Worker implements WorkerInterface
 
     /**
      * Pull {@see Payload} if it is available without blocking.
-     *
-     * @return null|Payload
      */
     private function pullPayload(): ?Payload
     {
@@ -202,9 +164,6 @@ class Worker implements WorkerInterface
         return PayloadFactory::fromFrame($frame);
     }
 
-    /**
-     * @param bool $eos End of stream
-     */
     private function send(string $body = '', string $header = '', bool $eos = true): void
     {
         $frame = new Frame($header . $body, [\strlen($header)]);
@@ -216,9 +175,6 @@ class Worker implements WorkerInterface
         $this->sendFrame($frame);
     }
 
-    /**
-     * @param Frame $frame
-     */
     private function sendFrame(Frame $frame): void
     {
         try {
@@ -230,10 +186,6 @@ class Worker implements WorkerInterface
         }
     }
 
-    /**
-     * @param array $payload
-     * @return string
-     */
     private function encode(array $payload): string
     {
         return \json_encode($payload, self::JSON_ENCODE_FLAGS);
@@ -242,9 +194,6 @@ class Worker implements WorkerInterface
     /**
      * Create a new RoadRunner {@see Worker} using global
      * environment ({@see Environment}) configuration.
-     *
-     * @param bool $interceptSideEffects
-     * @return self
      */
     public static function create(bool $interceptSideEffects = true): self
     {
@@ -254,10 +203,6 @@ class Worker implements WorkerInterface
     /**
      * Create a new RoadRunner {@see Worker} using passed environment
      * configuration.
-     *
-     * @param EnvironmentInterface $env
-     * @param bool $interceptSideEffects
-     * @return self
      */
     public static function createFromEnvironment(EnvironmentInterface $env, bool $interceptSideEffects = true): self
     {

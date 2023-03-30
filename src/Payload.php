@@ -1,12 +1,5 @@
 <?php
 
-/**
- * This file is part of RoadRunner package.
- *
- * For the full copyright and license information, please view the LICENSE
- * file that was distributed with this source code.
- */
-
 declare(strict_types=1);
 
 namespace Spiral\RoadRunner;
@@ -25,14 +18,14 @@ class Payload
      * @psalm-readonly
      * @var string
      */
-    public string $body = '';
+    public readonly string $body;
 
     /**
      * Execution context (binary).
      *
      * @psalm-readonly
      */
-    public string $header = '';
+    public readonly string $header;
 
     /**
      * End of stream.
@@ -40,7 +33,7 @@ class Payload
      *
      * @psalm-readonly
      */
-    public bool $eos = true;
+    public readonly bool $eos;
 
     public function __construct(?string $body, ?string $header = null, bool $eos = true)
     {

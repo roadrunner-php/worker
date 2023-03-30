@@ -10,7 +10,7 @@ use Spiral\RoadRunner\Message\Command\GetProcessId;
 use Spiral\RoadRunner\Message\Command\StreamStop;
 use Spiral\RoadRunner\Message\Command\WorkerStop;
 
-class PayloadFactory
+final class PayloadFactory
 {
     /**
      * @var int
