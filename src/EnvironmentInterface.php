@@ -18,22 +18,18 @@ interface EnvironmentInterface
     /**
      * Returns worker mode assigned to the PHP process.
      *
-     * @return ModeType
+     * @return ModeType|string
      */
     #[ExpectedValues(valuesFromClass: Mode::class)]
     public function getMode(): string;
 
     /**
      * Address worker should be connected to (or pipes).
-     *
-     * @return non-empty-string
      */
     public function getRelayAddress(): string;
 
     /**
      * RPC address.
-     *
-     * @return non-empty-string
      */
     public function getRPCAddress(): string;
 }

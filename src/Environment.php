@@ -31,40 +31,32 @@ class Environment implements EnvironmentInterface
         $this->env = $env;
     }
 
-    /**
-     * {@inheritDoc}
-     */
     #[ExpectedValues(valuesFromClass: Mode::class)]
     public function getMode(): string
     {
         return $this->get('RR_MODE', '');
     }
 
-    /**
-     * {@inheritDoc}
-     */
     public function getRelayAddress(): string
     {
         return $this->get('RR_RELAY', 'pipes');
     }
 
-    /**
-     * {@inheritDoc}
-     */
     public function getRPCAddress(): string
     {
         return $this->get('RR_RPC', 'tcp://127.0.0.1:6001');
     }
 
     /**
-     * @param string $name
-     * @param string $default
-     * @return string
+     * @template TDefault of string
+     *
+     * @param non-empty-string $name
+     * @param TDefault $default
+     * @return string|TDefault
      */
     private function get(string $name, string $default = ''): string
     {
         if (isset($this->env[$name]) || \array_key_exists($name, $this->env)) {
-            /** @psalm-suppress RedundantCastGivenDocblockType */
             return (string)$this->env[$name];
         }
 

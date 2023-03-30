@@ -55,9 +55,10 @@ final class PayloadFactory
     }
 
     /**
-     * @param non-empty-string $json
+     * @param string $json
      * @return array
      * @throws \JsonException
+     * @psalm-assert non-empty-string $json
      */
     private static function decode(string $json): array
     {

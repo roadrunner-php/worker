@@ -34,6 +34,7 @@
         "ext-sockets": "*",
         "psr/log": "^1.0|^2.0|^3.0",
         "spiral/goridge": "^4.0",
+        "spiral/roadrunner": "^2023.1",
         "composer-runtime-api": "^2.0"
     },
     "require-dev": {

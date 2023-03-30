@@ -180,7 +180,7 @@ class Worker implements WorkerInterface
         try {
             $this->relay->send($frame);
         } catch (GoridgeException $e) {
-            throw new TransportException($e->getMessage(), (int)$e->getCode(), $e);
+            throw new TransportException($e->getMessage(), $e->getCode(), $e);
         } catch (\Throwable $e) {
             throw new RoadRunnerException($e->getMessage(), (int)$e->getCode(), $e);
         }
