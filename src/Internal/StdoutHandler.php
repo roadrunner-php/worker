@@ -47,8 +47,6 @@ final class StdoutHandler
 
     /**
      * Intercept all output headers writing.
-     *
-     * @return void
      */
     private static function restreamHeaders(): void
     {
@@ -65,7 +63,6 @@ final class StdoutHandler
      * Intercept all output buffer write.
      *
      * @param int<0, max> $chunkSize
-     * @return void
      */
     private static function restreamOutputBuffer(int $chunkSize): void
     {
@@ -78,9 +75,6 @@ final class StdoutHandler
         }, $chunkSize);
     }
 
-    /**
-     * @return void
-     */
     private static function restreamSymfonyDumper(): void
     {
         if (\class_exists(AbstractDumper::class)) {

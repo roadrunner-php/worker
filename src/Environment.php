@@ -4,31 +4,25 @@ declare(strict_types=1);
 
 namespace Spiral\RoadRunner;
 
-use JetBrains\PhpStorm\ExpectedValues;
 use Spiral\RoadRunner\Environment\Mode;
 
 /**
  * @psalm-import-type ModeType from Mode
- * @psalm-type EnvironmentVariables = array {
+ * @psalm-type EnvironmentVariables = array{
  *      RR_MODE?:   ModeType|string,
  *      RR_RELAY?:  string,
  *      RR_RPC?:    string,
- * }
+ * }|array<string, string>
  * @see Mode
  */
 class Environment implements EnvironmentInterface
 {
     /**
-     * @var EnvironmentVariables
-     */
-    private array $env;
-
-    /**
      * @param EnvironmentVariables $env
      */
-    public function __construct(array $env = [])
-    {
-        $this->env = $env;
+    public function __construct(
+        private array $env = [],
+    ) {
     }
 
     public function getMode(): string
@@ -56,6 +50,7 @@ class Environment implements EnvironmentInterface
     private function get(string $name, string $default = ''): string
     {
         if (isset($this->env[$name]) || \array_key_exists($name, $this->env)) {
+            /** @psalm-suppress RedundantCastGivenDocblockType */
             return (string)$this->env[$name];
         }
 
@@ -65,7 +60,7 @@ class Environment implements EnvironmentInterface
     public static function fromGlobals(): self
     {
         /** @var array<string, string> $env */
-        $env = \array_merge($_ENV, $_SERVER);
+        $env = [...$_ENV, ...$_SERVER];
 
         return new self($env);
     }

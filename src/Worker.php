@@ -30,20 +30,15 @@ use Spiral\RoadRunner\Message\SkipMessage;
 class Worker implements WorkerInterface
 {
     private const JSON_ENCODE_FLAGS = \JSON_THROW_ON_ERROR | \JSON_PRESERVE_ZERO_FRACTION;
-    private const JSON_DECODE_FLAGS = \JSON_THROW_ON_ERROR;
-
-    private RelayInterface $relay;
-
-    private LoggerInterface $logger;
 
     /** @var array<int, Payload> */
     private array $payloads = [];
 
-    public function __construct(RelayInterface $relay, bool $interceptSideEffects = true)
-    {
-        $this->relay = $relay;
-        $this->logger = new Logger();
-
+    public function __construct(
+        private readonly RelayInterface $relay,
+        bool $interceptSideEffects = true,
+        private readonly LoggerInterface $logger = new Logger(),
+    ) {
         if ($interceptSideEffects) {
             StdoutHandler::register();
         }
@@ -71,7 +66,7 @@ class Worker implements WorkerInterface
                     return null;
                 case $payload::class === GetProcessId::class:
                     $this->sendProcessId();
-                    // no break
+                // no break
                 case $payload instanceof SkipMessage:
                     continue 2;
             }
@@ -195,18 +190,29 @@ class Worker implements WorkerInterface
      * Create a new RoadRunner {@see Worker} using global
      * environment ({@see Environment}) configuration.
      */
-    public static function create(bool $interceptSideEffects = true): self
+    public static function create(bool $interceptSideEffects = true, LoggerInterface $logger = new Logger()): self
     {
-        return static::createFromEnvironment(Environment::fromGlobals(), $interceptSideEffects);
+        return static::createFromEnvironment(
+            env: Environment::fromGlobals(),
+            interceptSideEffects: $interceptSideEffects,
+            logger: $logger,
+        );
     }
 
     /**
      * Create a new RoadRunner {@see Worker} using passed environment
      * configuration.
      */
-    public static function createFromEnvironment(EnvironmentInterface $env, bool $interceptSideEffects = true): self
-    {
-        return new self(Relay::create($env->getRelayAddress()), $interceptSideEffects);
+    public static function createFromEnvironment(
+        EnvironmentInterface $env,
+        bool $interceptSideEffects = true,
+        LoggerInterface $logger = new Logger(),
+    ): self {
+        return new self(
+            relay: Relay::create($env->getRelayAddress()),
+            interceptSideEffects: $interceptSideEffects,
+            logger: $logger
+        );
     }
 
     private function sendProcessId(): static

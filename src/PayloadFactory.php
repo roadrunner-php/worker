@@ -12,9 +12,6 @@ use Spiral\RoadRunner\Message\Command\WorkerStop;
 
 final class PayloadFactory
 {
-    /**
-     * @var int
-     */
     private const JSON_DECODE_FLAGS = \JSON_THROW_ON_ERROR;
 
     public static function fromFrame(Frame $frame): Payload
@@ -55,8 +52,6 @@ final class PayloadFactory
     }
 
     /**
-     * @param string $json
-     * @return array
      * @throws \JsonException
      * @psalm-assert non-empty-string $json
      */

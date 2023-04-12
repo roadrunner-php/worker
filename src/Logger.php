@@ -27,9 +27,6 @@ class Logger implements LoggerInterface
         \file_put_contents('php://stderr', $message);
     }
 
-    /**
-     * @return non-empty-string
-     */
     protected function format(string $level, string $message, array $context = []): string
     {
         return \sprintf('[php %s] %s %s', $level, $message, $this->formatContext($context));
@@ -39,7 +36,7 @@ class Logger implements LoggerInterface
     {
         try {
             return \json_encode($context, \JSON_THROW_ON_ERROR);
-        } catch (\JsonException $_) {
+        } catch (\JsonException) {
             return \print_r($context, true);
         }
     }

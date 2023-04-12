@@ -76,6 +76,9 @@ class StreamResponseTest extends TestCase
 
     private function getWorker(): Worker
     {
-        return $this->worker ??= new Worker($this->getRelay(), false);
+        return $this->worker ??= new Worker(
+            relay: $this->getRelay(),
+            interceptSideEffects: false
+        );
     }
 }
