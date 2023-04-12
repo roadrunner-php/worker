@@ -1,12 +1,5 @@
 <?php
 
-/**
- * This file is part of RoadRunner package.
- *
- * For the full copyright and license information, please view the LICENSE
- * file that was distributed with this source code.
- */
-
 declare(strict_types=1);
 
 namespace Spiral\RoadRunner\Internal;
@@ -54,8 +47,6 @@ final class StdoutHandler
 
     /**
      * Intercept all output headers writing.
-     *
-     * @return void
      */
     private static function restreamHeaders(): void
     {
@@ -71,8 +62,7 @@ final class StdoutHandler
     /**
      * Intercept all output buffer write.
      *
-     * @param positive-int|0 $chunkSize
-     * @return void
+     * @param int<0, max> $chunkSize
      */
     private static function restreamOutputBuffer(int $chunkSize): void
     {
@@ -85,9 +75,6 @@ final class StdoutHandler
         }, $chunkSize);
     }
 
-    /**
-     * @return void
-     */
     private static function restreamSymfonyDumper(): void
     {
         if (\class_exists(AbstractDumper::class)) {
