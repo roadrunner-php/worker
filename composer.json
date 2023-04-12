@@ -48,7 +48,8 @@
     "require-dev": {
         "jetbrains/phpstorm-attributes": "^1.0",
         "phpunit/phpunit": "^10.0",
-        "vimeo/psalm": "^5.9"
+        "vimeo/psalm": "^5.9",
+        "symfony/var-dumper": "^6.3"
     },
     "scripts": {
         "analyze": "psalm"
