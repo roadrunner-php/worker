@@ -12,10 +12,9 @@ class Logger implements LoggerInterface
     use LoggerTrait;
 
     /**
-     * {@inheritDoc}
      * @psalm-suppress RedundantConditionGivenDocblockType
      */
-    public function log($level, $message, array $context = []): void
+    public function log(mixed $level, string|\Stringable $message, array $context = []): void
     {
         assert(\is_scalar($level), 'Invalid log level type');
         assert(\is_string($message), 'Invalid log message type');
@@ -23,29 +22,19 @@ class Logger implements LoggerInterface
         $this->write($this->format((string)$level, $message, $context));
     }
 
-    /**
-     * @param string $message
-     */
     protected function write(string $message): void
     {
         \file_put_contents('php://stderr', $message);
     }
 
     /**
-     * @param string $level
-     * @param string $message
-     * @param array $context
-     * @return string
+     * @return non-empty-string
      */
     protected function format(string $level, string $message, array $context = []): string
     {
         return \sprintf('[php %s] %s %s', $level, $message, $this->formatContext($context));
     }
 
-    /**
-     * @param array $context
-     * @return string
-     */
     protected function formatContext(array $context): string
     {
         try {

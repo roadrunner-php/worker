@@ -31,7 +31,6 @@ class Environment implements EnvironmentInterface
         $this->env = $env;
     }
 
-    #[ExpectedValues(valuesFromClass: Mode::class)]
     public function getMode(): string
     {
         return $this->get('RR_MODE', '');
@@ -63,9 +62,6 @@ class Environment implements EnvironmentInterface
         return $default;
     }
 
-    /**
-     * @return self
-     */
     public static function fromGlobals(): self
     {
         /** @var array<string, string> $env */
