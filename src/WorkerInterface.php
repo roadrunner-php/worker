@@ -32,7 +32,6 @@ interface WorkerInterface
      *  $worker->error('Something Went Wrong');
      * </code>
      *
-     * @param non-empty-string $error
      * @throws RoadRunnerException
      */
     public function error(string $error): void;
