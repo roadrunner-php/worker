@@ -12,6 +12,7 @@ use Spiral\Goridge\Relay;
 use Spiral\Goridge\RelayInterface;
 use Spiral\RoadRunner\Exception\RoadRunnerException;
 use Spiral\RoadRunner\Internal\StdoutHandler;
+use Spiral\RoadRunner\Message\Command\ForkProcess;
 use Spiral\RoadRunner\Message\Command\GetProcessId;
 use Spiral\RoadRunner\Message\Command\WorkerStop;
 use Spiral\RoadRunner\Message\SkipMessage;
@@ -66,6 +67,9 @@ class Worker implements WorkerInterface
                     return null;
                 case $payload::class === GetProcessId::class:
                     $this->sendProcessId();
+
+                case $payload::class === ForkProcess::class:
+                    $this->forkProcess();
                 // no break
                 case $payload instanceof SkipMessage:
                     continue 2;
@@ -193,9 +197,9 @@ class Worker implements WorkerInterface
     public static function create(bool $interceptSideEffects = true, LoggerInterface $logger = new Logger()): self
     {
         return static::createFromEnvironment(
-            env: Environment::fromGlobals(),
+            env:                  Environment::fromGlobals(),
             interceptSideEffects: $interceptSideEffects,
-            logger: $logger,
+            logger:               $logger,
         );
     }
 
@@ -209,9 +213,9 @@ class Worker implements WorkerInterface
         LoggerInterface $logger = new Logger(),
     ): self {
         return new self(
-            relay: Relay::create($env->getRelayAddress()),
+            relay:                Relay::create($env->getRelayAddress()),
             interceptSideEffects: $interceptSideEffects,
-            logger: $logger
+            logger:               $logger
         );
     }
 
@@ -220,5 +224,25 @@ class Worker implements WorkerInterface
         $frame = new Frame($this->encode(['pid' => \getmypid()]), [], Frame::CONTROL);
         $this->sendFrame($frame);
         return $this;
+    }
+
+    private function forkProcess()
+    {
+        $pid = \pcntl_fork();
+
+        if ($pid === -1) {
+            throw new RoadRunnerException('Couldn\'t fork currently running process');
+        }
+
+        // send the frame from the parents process
+        // $pid here is the child's PID
+        if ($pid) {
+            $frame = new Frame($this->encode(['pid' => $pid]), [], Frame::CONTROL);
+            $this->sendFrame($frame);
+
+            // are we are inside a child?
+            return;
+        }
+        // inside a parent process
     }
 }

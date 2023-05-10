@@ -6,6 +6,7 @@ namespace Spiral\RoadRunner;
 
 use Spiral\Goridge\Frame;
 use Spiral\RoadRunner\Exception\RoadRunnerException;
+use Spiral\RoadRunner\Message\Command\ForkProcess;
 use Spiral\RoadRunner\Message\Command\GetProcessId;
 use Spiral\RoadRunner\Message\Command\StreamStop;
 use Spiral\RoadRunner\Message\Command\WorkerStop;
@@ -46,6 +47,10 @@ final class PayloadFactory
 
         if (!empty($command['pid'])) {
             return new GetProcessId(null, $header);
+        }
+
+        if (!empty($command['fork'])) {
+            return new ForkProcess(null, $header);
         }
 
         throw new RoadRunnerException('Invalid task header, undefined control package');
