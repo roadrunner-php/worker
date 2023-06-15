@@ -36,7 +36,7 @@ class Worker implements WorkerInterface
     private array $payloads = [];
 
     public function __construct(
-        private readonly RelayInterface $relay,
+        private RelayInterface $relay,
         bool $interceptSideEffects = true,
         private readonly LoggerInterface $logger = new Logger(),
     ) {
@@ -67,10 +67,10 @@ class Worker implements WorkerInterface
                     return null;
                 case $payload::class === GetProcessId::class:
                     $this->sendProcessId();
-
+                    continue 2;
                 case $payload::class === ForkProcess::class:
                     $this->forkProcess();
-                // no break
+                    continue 2;
                 case $payload instanceof SkipMessage:
                     continue 2;
             }
@@ -223,6 +223,7 @@ class Worker implements WorkerInterface
     {
         $frame = new Frame($this->encode(['pid' => \getmypid()]), [], Frame::CONTROL);
         $this->sendFrame($frame);
+
         return $this;
     }
 
@@ -234,15 +235,13 @@ class Worker implements WorkerInterface
             throw new RoadRunnerException('Couldn\'t fork currently running process');
         }
 
-        // send the frame from the parents process
-        // $pid here is the child's PID
-        if ($pid) {
-            $frame = new Frame($this->encode(['pid' => $pid]), [], Frame::CONTROL);
-            $this->sendFrame($frame);
-
-            // are we are inside a child?
+        if ($pid !== 0) {
+            // in parent
             return;
         }
-        // inside a parent process
+
+        // reconnect to relay
+        $this->relay = Relay::create(getenv('RR_FORKED_ADDRESS'));
+        $this->sendProcessId();
     }
 }
