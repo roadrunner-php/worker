@@ -10,6 +10,7 @@ use Spiral\Goridge\Exception\TransportException;
 use Spiral\Goridge\Frame;
 use Spiral\Goridge\Relay;
 use Spiral\Goridge\RelayInterface;
+use Spiral\Goridge\StreamRelay;
 use Spiral\RoadRunner\Exception\RoadRunnerException;
 use Spiral\RoadRunner\Internal\StdoutHandler;
 use Spiral\RoadRunner\Message\Command\ForkProcess;
@@ -227,8 +228,18 @@ class Worker implements WorkerInterface
         return $this;
     }
 
+    private int $childIndex = 3;
+
     private function forkProcess()
     {
+        // allocate new pipes
+        // send them to rr
+        $childIn = \fopen('php://fd/' . $this->childIndex, 'w');
+        $childOut = \fopen('php://fd/' . ($this->childIndex + 1), 'r');
+
+        // todo: need to pipe STDERR to this
+        $childERR = \fopen('php://fd/' . ($this->childIndex + 2), 'w');
+
         $pid = \pcntl_fork();
 
         if ($pid === -1) {
@@ -237,11 +248,24 @@ class Worker implements WorkerInterface
 
         if ($pid !== 0) {
             // in parent
+            $frame = new Frame(
+                $this->encode(
+                    [
+                        'childIn'  => $this->childIndex,
+                        'childOut' => $this->childIndex + 1,
+                        'childErr' => $this->childIndex + 2,
+                    ]
+                ),
+                [],
+                Frame::CONTROL
+            );
+            $this->sendFrame($frame);
+            $this->childIndex += 3;
+
             return;
         }
 
         // reconnect to relay
-        $this->relay = Relay::create(getenv('RR_FORKED_ADDRESS'));
-        $this->sendProcessId();
+        $this->relay = new StreamRelay($childIn, $childOut);
     }
 }
