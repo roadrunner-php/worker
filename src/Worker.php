@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Spiral\RoadRunner;
 
 use Psr\Log\LoggerInterface;
+use Spiral\Goridge\BlockedRelayInterface;
 use Spiral\Goridge\Exception\GoridgeException;
 use Spiral\Goridge\Exception\TransportException;
 use Spiral\Goridge\Frame;
@@ -13,6 +14,7 @@ use Spiral\Goridge\RelayInterface;
 use Spiral\RoadRunner\Exception\RoadRunnerException;
 use Spiral\RoadRunner\Internal\StdoutHandler;
 use Spiral\RoadRunner\Message\Command\GetProcessId;
+use Spiral\RoadRunner\Message\Command\Pong;
 use Spiral\RoadRunner\Message\Command\WorkerStop;
 use Spiral\RoadRunner\Message\SkipMessage;
 
@@ -27,12 +29,18 @@ use Spiral\RoadRunner\Message\SkipMessage;
  * }
  * </code>
  */
-class Worker implements WorkerInterface
+class Worker implements StreamWorkerInterface
 {
     private const JSON_ENCODE_FLAGS = \JSON_THROW_ON_ERROR | \JSON_PRESERVE_ZERO_FRACTION;
 
     /** @var array<int, Payload> */
     private array $payloads = [];
+
+    private bool $streamMode = false;
+    /** @var int<0, max> Count of frames sent in stream mode */
+    private int $framesSent = 0;
+    private bool $shouldPing = false;
+    private bool $waitingPong = false;
 
     public function __construct(
         private readonly RelayInterface $relay,
@@ -63,18 +71,33 @@ class Worker implements WorkerInterface
                 case $payload::class === Payload::class:
                     return $payload;
                 case $payload instanceof WorkerStop:
+                    $this->waitingPong = false;
                     return null;
                 case $payload::class === GetProcessId::class:
                     $this->sendProcessId();
-                // no break
+                    continue 2;
+                case $payload instanceof Pong:
+                    $this->waitingPong = false;
+                    continue 2;
                 case $payload instanceof SkipMessage:
                     continue 2;
             }
         }
     }
 
+    public function withStreamMode(): static
+    {
+        $clone = clone $this;
+        $clone->streamMode = true;
+        $clone->framesSent = 0;
+        $clone->shouldPing = false;
+        $clone->waitingPong = false;
+        return $clone;
+    }
+
     public function respond(Payload $payload): void
     {
+        $this->streamMode and ++$this->framesSent;
         $this->send($payload->body, $payload->header, $payload->eos);
     }
 
@@ -133,7 +156,7 @@ class Worker implements WorkerInterface
             }
 
             $payload = $this->pullPayload();
-            if ($payload === null) {
+            if ($payload === null || $payload instanceof Pong) {
                 break;
             }
 
@@ -151,12 +174,28 @@ class Worker implements WorkerInterface
      */
     private function pullPayload(): ?Payload
     {
+        if (!$this->waitingPong && $this->relay instanceof BlockedRelayInterface) {
+            if (!$this->streamMode) {
+                return null;
+            }
+
+            $this->haveToPing();
+            return null;
+        }
+
         if (!$this->relay->hasFrame()) {
             return null;
         }
 
         $frame = $this->relay->waitFrame();
-        return PayloadFactory::fromFrame($frame);
+        $payload = PayloadFactory::fromFrame($frame);
+
+        if ($payload instanceof Pong) {
+            $this->waitingPong = false;
+            return null;
+        }
+
+        return $payload;
     }
 
     private function send(string $body = '', string $header = '', bool $eos = true): void
@@ -164,7 +203,11 @@ class Worker implements WorkerInterface
         $frame = new Frame($header . $body, [\strlen($header)]);
 
         if (!$eos) {
-            $frame->byte10 = Frame::BYTE10_STREAM;
+            $frame->byte10 |= Frame::BYTE10_STREAM;
+        }
+
+        if ($this->shouldPing) {
+            $frame->byte10 |= Frame::BYTE10_PING;
         }
 
         $this->sendFrame($frame);
@@ -173,6 +216,12 @@ class Worker implements WorkerInterface
     private function sendFrame(Frame $frame): void
     {
         try {
+            if ($this->streamMode && ($frame->byte10 & Frame::BYTE10_STREAM) && $this->shouldPing) {
+                $frame->byte10 |= Frame::BYTE10_PING;
+                $this->shouldPing = false;
+                $this->waitingPong = true;
+            }
+
             $this->relay->send($frame);
         } catch (GoridgeException $e) {
             throw new TransportException($e->getMessage(), $e->getCode(), $e);
@@ -220,5 +269,16 @@ class Worker implements WorkerInterface
         $frame = new Frame($this->encode(['pid' => \getmypid()]), [], Frame::CONTROL);
         $this->sendFrame($frame);
         return $this;
+    }
+
+    private function haveToPing(): void
+    {
+        if ($this->waitingPong || $this->framesSent === 0) {
+            return;
+        }
+
+        if ($this->framesSent % 5 === 0) {
+            $this->shouldPing = true;
+        }
     }
 }
