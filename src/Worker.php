@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Spiral\RoadRunner;
 
 use Psr\Log\LoggerInterface;
-use Spiral\Goridge\BlockedRelayInterface;
+use Spiral\Goridge\BlockingRelayInterface;
 use Spiral\Goridge\Exception\GoridgeException;
 use Spiral\Goridge\Exception\TransportException;
 use Spiral\Goridge\Frame;
@@ -174,7 +174,7 @@ class Worker implements StreamWorkerInterface
      */
     private function pullPayload(): ?Payload
     {
-        if (!$this->waitingPong && $this->relay instanceof BlockedRelayInterface) {
+        if (!$this->waitingPong && $this->relay instanceof BlockingRelayInterface) {
             if (!$this->streamMode) {
                 return null;
             }
