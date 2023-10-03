@@ -257,8 +257,11 @@ class Worker implements StreamWorkerInterface
         bool $interceptSideEffects = true,
         LoggerInterface $logger = new Logger(),
     ): self {
+        $address = $env->getRelayAddress();
+        \assert($address !== '', 'Relay address must be specified in environment');
+
         return new self(
-            relay: Relay::create($env->getRelayAddress()),
+            relay: Relay::create($address),
             interceptSideEffects: $interceptSideEffects,
             logger: $logger
         );
