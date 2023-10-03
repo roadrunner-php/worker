@@ -7,6 +7,7 @@ namespace Spiral\RoadRunner;
 use Spiral\Goridge\Frame;
 use Spiral\RoadRunner\Exception\RoadRunnerException;
 use Spiral\RoadRunner\Message\Command\GetProcessId;
+use Spiral\RoadRunner\Message\Command\Pong;
 use Spiral\RoadRunner\Message\Command\StreamStop;
 use Spiral\RoadRunner\Message\Command\WorkerStop;
 
@@ -24,6 +25,10 @@ final class PayloadFactory
 
         if (($frame->byte10 & Frame::BYTE10_STOP) !== 0) {
             return new StreamStop($payload);
+        }
+
+        if (($frame->byte10 & Frame::BYTE10_PONG) !== 0) {
+            return new Pong($payload);
         }
 
         return new Payload(
