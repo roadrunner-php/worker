@@ -7,7 +7,7 @@ namespace Spiral\RoadRunner;
 use Spiral\Goridge\RPC\Codec\JsonCodec;
 use Spiral\Goridge\RPC\RPCInterface;
 
-class WorkerPool
+final class WorkerPool
 {
     private readonly RPCInterface $rpc;
 
