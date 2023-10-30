@@ -34,6 +34,11 @@ final class PayloadFactory
         return new Payload(
             \substr($payload, $frame->options[0]),
             \substr($payload, 0, $frame->options[0]),
+            encoding: match (true) {
+                $frame->hasFlag(Frame::CODEC_JSON) => Encoding::Json,
+                $frame->hasFlag(Frame::CODEC_PROTO) => Encoding::Protobuf,
+                default => Encoding::Raw,
+            }
         );
     }
 

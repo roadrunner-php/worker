@@ -37,6 +37,8 @@ class Payload
          * @psalm-readonly
          */
         public readonly bool $eos = true,
+
+        public readonly Encoding $encoding = Encoding::Raw,
     ) {
         $this->body = $body ?? '';
         $this->header = $header ?? '';
