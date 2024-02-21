@@ -34,7 +34,17 @@ final class WorkerPool
      */
     public function countWorkers(string $plugin): int
     {
-        return (int)($this->rpc->call('informer.Workers', $plugin)['workers'] ?? 0);
+        return count($this->getWorkers($plugin));
+    }
+
+    /**
+     * Get the info about running workers for a pool.
+     *
+     * @param non-empty-string $plugin
+     */
+    public function getWorkers(string $plugin): array
+    {
+        return $this->rpc->call('informer.Workers', $plugin)['workers'];
     }
 
     /**
