@@ -35,6 +35,13 @@ final class WorkerPoolTest extends TestCase
         $this->workerPool->addWorker('test');
     }
 
+    public function testCountWorkers(): void
+    {
+        $this->rpc->expects($this->once())->method('call')->with('informer.Workers', 'test');
+
+        $this->workerPool->countWorkers('test');
+    }
+
     public function testRemoveWorker(): void
     {
         $this->rpc->expects($this->once())->method('call')->with('informer.RemoveWorker', 'test');
