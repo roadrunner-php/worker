@@ -42,7 +42,7 @@ final class WorkerPool
     }
 
     /**
-     * Get the worker count for a pool.
+     * Get the number of workers for the pool.
      *
      * @param non-empty-string $plugin
      */
@@ -52,7 +52,7 @@ final class WorkerPool
     }
 
     /**
-     * Get the info about running workers for a pool.
+     * Get the info about running workers for the pool.
      *
      * @param non-empty-string $plugin
      */
