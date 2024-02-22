@@ -14,7 +14,6 @@ final class Worker
      * @param positive-int $memoryUsage memory usage in bytes. Values might vary for different operating systems and based on RSS
      * @param float $cpuUsage how many percent of the CPU time this process uses
      * @param string $command used in the service plugin and shows a command for the particular service
-     * @param string $status
      */
     public function __construct(
         public int $pid,
