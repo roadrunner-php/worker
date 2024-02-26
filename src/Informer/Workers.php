@@ -10,8 +10,16 @@ final class Workers implements \Countable
      * @param array<Worker> $workers
      */
     public function __construct(
-        public array $workers = [],
+        private readonly array $workers = [],
     ) {
+    }
+
+    /**
+     * @return array<Worker>
+     */
+    public function getWorkers(): array
+    {
+        return $this->workers;
     }
 
     public function count(): int
