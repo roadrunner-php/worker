@@ -97,8 +97,8 @@ class Worker implements StreamWorkerInterface
 
     /**
      * @param int|null $codec The codec used for encoding the payload header.
-     * Can be {@see Frame::CODEC_PROTO} for Protocol Buffers or {@see Frame::CODEC_JSON} for JSON.
-     * This parameter will be removed in v4.0 and {@see Frame::CODEC_PROTO} will be used by default.
+     *        Can be {@see Frame::CODEC_PROTO} for Protocol Buffers or {@see Frame::CODEC_JSON} for JSON.
+     *        This parameter will be removed in v4.0 and {@see Frame::CODEC_PROTO} will be used by default.
      */
     public function respond(Payload $payload, ?int $codec = null): void
     {
