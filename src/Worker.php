@@ -95,10 +95,15 @@ class Worker implements StreamWorkerInterface
         return $clone;
     }
 
-    public function respond(Payload $payload): void
+    /**
+     * @param int|null $codec The codec used for encoding the payload header.
+     *        Can be {@see Frame::CODEC_PROTO} for Protocol Buffers or {@see Frame::CODEC_JSON} for JSON.
+     *        This parameter will be removed in v4.0 and {@see Frame::CODEC_PROTO} will be used by default.
+     */
+    public function respond(Payload $payload, ?int $codec = null): void
     {
         $this->streamMode and ++$this->framesSent;
-        $this->send($payload->body, $payload->header, $payload->eos);
+        $this->send($payload->body, $payload->header, $payload->eos, $codec);
     }
 
     public function error(string $error): void
@@ -198,7 +203,7 @@ class Worker implements StreamWorkerInterface
         return $payload;
     }
 
-    private function send(string $body = '', string $header = '', bool $eos = true): void
+    private function send(string $body = '', string $header = '', bool $eos = true, ?int $codec = null): void
     {
         $frame = new Frame($header . $body, [\strlen($header)]);
 
@@ -208,6 +213,10 @@ class Worker implements StreamWorkerInterface
 
         if ($this->shouldPing) {
             $frame->byte10 |= Frame::BYTE10_PING;
+        }
+
+        if ($codec !== null) {
+            $frame->setFlag($codec);
         }
 
         $this->sendFrame($frame);
