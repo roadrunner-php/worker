@@ -118,12 +118,12 @@ class Worker implements StreamWorkerInterface
         $this->send('', $this->encode(['stop' => true]));
     }
 
-    public function hasPayload(string $class = null): bool
+    public function hasPayload(?string $class = null): bool
     {
         return $this->findPayload($class) !== null;
     }
 
-    public function getPayload(string $class = null): ?Payload
+    public function getPayload(?string $class = null): ?Payload
     {
         $pos = $this->findPayload($class);
         if ($pos === null) {
@@ -140,7 +140,7 @@ class Worker implements StreamWorkerInterface
      *
      * @return null|int Index in {@see $this->payloads} or null if not found
      */
-    private function findPayload(string $class = null): ?int
+    private function findPayload(?string $class = null): ?int
     {
         // Find in existing payloads
         if ($this->payloads !== []) {
