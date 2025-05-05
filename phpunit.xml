@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <phpunit xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:noNamespaceSchemaLocation="./vendor/phpunit/phpunit/phpunit.xsd"
+         cacheResultFile="runtime/.phpunit.result.cache"
          backupGlobals="false"
          colors="true"
          processIsolation="false"
@@ -10,14 +11,8 @@
          stderr="true"
 >
     <testsuites>
-        <testsuite name="RR Worker Tests">
-            <directory>tests</directory>
+        <testsuite name="Unit">
+            <directory>tests/Unit</directory>
         </testsuite>
     </testsuites>
-
-    <coverage>
-        <include>
-            <directory>src</directory>
-        </include>
-    </coverage>
 </phpunit>
