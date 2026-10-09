@@ -47,8 +47,8 @@ final class EnvironmentTest extends TestCase
 
     public function testGetVersionWithValue(): void
     {
-        $env = new Environment(['RR_VERSION' => '2024.1.3']);
-        $this->assertEquals('2024.1.3', $env->getVersion());
+        $env = new Environment(['RR_VERSION' => '3.0.0']);
+        $this->assertEquals('3.0.0', $env->getVersion());
     }
 
     public function testFromGlobals(): void
