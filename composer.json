@@ -36,7 +36,7 @@
         "chat": "https://discord.gg/V6EK4he"
     },
     "require": {
-        "php": ">=8.1",
+        "php": ">=8.2",
         "ext-json": "*",
         "ext-sockets": "*",
         "psr/log": "^2.0 || ^3.0",
