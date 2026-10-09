@@ -60,6 +60,39 @@ final class VersionTest extends TestCase
             '1.*'
         ];
 
+        yield 'calendar version' => [
+            [
+                'spiral/roadrunner' => [
+                    'pretty_version' => 'v2025.1.15',
+                ],
+            ],
+            '2025.1.15',
+            '2025.*'
+        ];
+
+        yield 'semver v3 after calendar versions' => [
+            [
+                'spiral/roadrunner' => [
+                    'pretty_version' => 'v3.0.0',
+                ],
+                'spiral/roadrunner-worker' => [
+                    'pretty_version' => 'v3.7.0',
+                ],
+            ],
+            '3.0.0',
+            '3.*'
+        ];
+
+        yield 'v3 dev branch' => [
+            [
+                'spiral/roadrunner' => [
+                    'pretty_version' => '3.x-dev',
+                ],
+            ],
+            '3.x-dev',
+            '3.*'
+        ];
+
         yield [
             [
                 'spiral/roadrunner-http' => [
