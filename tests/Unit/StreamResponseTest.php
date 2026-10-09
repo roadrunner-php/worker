@@ -4,13 +4,16 @@ declare(strict_types=1);
 
 namespace Spiral\RoadRunner\Tests\Worker\Unit;
 
-use PHPUnit\Framework\TestCase;
+use Testo\Test;
+use Testo\Assert;
+use Testo\Lifecycle\AfterTest;
 use Spiral\Goridge\Frame;
 use Spiral\RoadRunner\Message\Command\GetProcessId;
 use Spiral\RoadRunner\Tests\Worker\Unit\Stub\TestRelay;
 use Spiral\RoadRunner\Worker;
 
-class StreamResponseTest extends TestCase
+#[Test]
+final class StreamResponseTest
 {
     private TestRelay $relay;
     private Worker $worker;
@@ -26,13 +29,13 @@ class StreamResponseTest extends TestCase
                 new Frame('{"pid":true}', [], Frame::CONTROL),
             );
 
-        self::assertTrue($worker->hasPayload());
-        self::assertTrue($worker->hasPayload(GetProcessId::class));
+        Assert::true($worker->hasPayload());
+        Assert::true($worker->hasPayload(GetProcessId::class));
 
 
         try {
             $worker->waitPayload();
-            self::fail('Expected exception was not thrown.');
+            Assert::fail('Expected exception was not thrown.');
         } catch (\RuntimeException $e) {
             if ($e->getMessage() !== 'There are no frames to return.') {
                 throw $e;
@@ -40,7 +43,7 @@ class StreamResponseTest extends TestCase
         }
 
         // Worker sends PID to the relay
-        self::assertMatchesRegularExpression('/\{\"pid\":\\d++}/', $this->getRelay()->getReceivedBody());
+        Assert::string($this->getRelay()->getReceivedBody())->matchesRegex('/\{\"pid\":\\d++}/');
     }
 
     /**
@@ -55,18 +58,18 @@ class StreamResponseTest extends TestCase
                 new Frame('{"stop":true}', [], Frame::CONTROL),
             );
 
-        self::assertTrue($worker->hasPayload());
-        self::assertTrue($worker->hasPayload(GetProcessId::class));
+        Assert::true($worker->hasPayload());
+        Assert::true($worker->hasPayload(GetProcessId::class));
         // After STOP command worker should not wait for payload and return null
-        self::assertNull($worker->waitPayload());
+        Assert::null($worker->waitPayload());
         // Worker sends PID to the relay
-        self::assertMatchesRegularExpression('/\{\"pid\":\\d++}/', $this->getRelay()->getReceivedBody());
+        Assert::string($this->getRelay()->getReceivedBody())->matchesRegex('/\{\"pid\":\\d++}/');
     }
 
+    #[AfterTest]
     protected function tearDown(): void
     {
         unset($this->relay, $this->worker);
-        parent::tearDown();
     }
 
     private function getRelay(): TestRelay

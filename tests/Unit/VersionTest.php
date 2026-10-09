@@ -4,12 +4,15 @@ declare(strict_types=1);
 
 namespace Spiral\RoadRunner\Tests\Worker\Unit;
 
+use Testo\Data\DataProvider;
+use Testo\Lifecycle\BeforeTest;
+use Testo\Test;
+use Testo\Assert;
 use Composer\InstalledVersions;
-use PHPUnit\Framework\Attributes\DataProvider;
-use PHPUnit\Framework\TestCase;
 use Spiral\RoadRunner\Version;
 
-final class VersionTest extends TestCase
+#[Test]
+final class VersionTest
 {
     public static function provideVersions(): iterable
     {
@@ -110,10 +113,9 @@ final class VersionTest extends TestCase
         ];
     }
 
+    #[BeforeTest]
     protected function setUp(): void
     {
-        parent::setUp();
-
         $ref = new \ReflectionClass(InstalledVersions::class);
         $ref->setStaticPropertyValue('canGetVendors', false);
     }
@@ -125,7 +127,7 @@ final class VersionTest extends TestCase
             'versions' => $versions,
         ]);
 
-        $this->assertSame($expectedVersion, Version::current());
-        $this->assertSame($expectedConstraint, Version::constraint());
+        Assert::same(Version::current(), $expectedVersion);
+        Assert::same(Version::constraint(), $expectedConstraint);
     }
 }

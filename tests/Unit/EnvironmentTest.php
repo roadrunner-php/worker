@@ -4,51 +4,53 @@ declare(strict_types=1);
 
 namespace Spiral\RoadRunner\Tests\Worker\Unit;
 
-use PHPUnit\Framework\TestCase;
+use Testo\Test;
+use Testo\Assert;
 use Spiral\RoadRunner\Environment;
 
-final class EnvironmentTest extends TestCase
+#[Test]
+final class EnvironmentTest
 {
     public function testGetModeWithDefault(): void
     {
         $env = new Environment();
-        $this->assertEquals('', $env->getMode());
+        Assert::equals($env->getMode(), '');
     }
 
     public function testGetModeWithValue(): void
     {
         $env = new Environment(['RR_MODE' => 'mode_value']);
-        $this->assertEquals('mode_value', $env->getMode());
+        Assert::equals($env->getMode(), 'mode_value');
     }
 
     public function testGetRelayAddressWithDefault(): void
     {
         $env = new Environment();
-        $this->assertEquals('pipes', $env->getRelayAddress());
+        Assert::equals($env->getRelayAddress(), 'pipes');
     }
 
     public function testGetRelayAddressWithValue(): void
     {
         $env = new Environment(['RR_RELAY' => 'relay_value']);
-        $this->assertEquals('relay_value', $env->getRelayAddress());
+        Assert::equals($env->getRelayAddress(), 'relay_value');
     }
 
     public function testGetRPCAddressWithDefault(): void
     {
         $env = new Environment();
-        $this->assertEquals('tcp://127.0.0.1:6001', $env->getRPCAddress());
+        Assert::equals($env->getRPCAddress(), 'tcp://127.0.0.1:6001');
     }
 
     public function testGetRPCAddressWithValue(): void
     {
         $env = new Environment(['RR_RPC' => 'rpc_value']);
-        $this->assertEquals('rpc_value', $env->getRPCAddress());
+        Assert::equals($env->getRPCAddress(), 'rpc_value');
     }
 
     public function testGetVersionWithValue(): void
     {
         $env = new Environment(['RR_VERSION' => '3.0.0']);
-        $this->assertEquals('3.0.0', $env->getVersion());
+        Assert::equals($env->getVersion(), '3.0.0');
     }
 
     public function testFromGlobals(): void
@@ -59,9 +61,9 @@ final class EnvironmentTest extends TestCase
 
         $env = Environment::fromGlobals();
 
-        $this->assertEquals('global_mode', $env->getMode());
-        $this->assertEquals('global_relay', $env->getRelayAddress());
-        $this->assertEquals('global_version', $env->getVersion());
-        $this->assertEquals('tcp://127.0.0.1:6001', $env->getRPCAddress());
+        Assert::equals($env->getMode(), 'global_mode');
+        Assert::equals($env->getRelayAddress(), 'global_relay');
+        Assert::equals($env->getVersion(), 'global_version');
+        Assert::equals($env->getRPCAddress(), 'tcp://127.0.0.1:6001');
     }
 }
