@@ -28,7 +28,7 @@ class TestRelay extends Relay
         bool $stream = false,
         bool $stopStream = false,
     ): self {
-        $head = (string)\json_encode([
+        $head = (string) \json_encode([
             'status'  => $status,
             'headers' => $headers,
         ], \JSON_THROW_ON_ERROR);
@@ -50,7 +50,7 @@ class TestRelay extends Relay
 
     public function getReceivedBody(): string
     {
-        return \implode('', \array_map(static fn (Frame $frame)
+        return \implode('', \array_map(static fn(Frame $frame)
             => \substr($frame->payload, $frame->options[0] ?? 0), $this->received));
     }
 

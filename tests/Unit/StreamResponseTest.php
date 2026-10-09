@@ -81,7 +81,7 @@ final class StreamResponseTest
     {
         return $this->worker ??= new Worker(
             relay: $this->getRelay(),
-            interceptSideEffects: false
+            interceptSideEffects: false,
         );
     }
 }
