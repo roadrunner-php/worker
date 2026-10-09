@@ -53,6 +53,35 @@ final class EnvironmentTest
         Assert::equals($env->getVersion(), '3.0.0');
     }
 
+    public function testGetVersionWithDefault(): void
+    {
+        $env = new Environment();
+        Assert::same($env->getVersion(), '');
+    }
+
+    public function testEmptyValueOverridesDefault(): void
+    {
+        $env = new Environment(['RR_RELAY' => '', 'RR_RPC' => '']);
+
+        Assert::same($env->getRelayAddress(), '');
+        Assert::same($env->getRPCAddress(), '');
+    }
+
+    public function testServerVariablesOverrideEnvVariables(): void
+    {
+        $backup = [$_ENV, $_SERVER];
+        $_ENV['RR_RPC'] = 'tcp://env:6001';
+        $_SERVER['RR_RPC'] = 'tcp://server:6001';
+
+        try {
+            $env = Environment::fromGlobals();
+        } finally {
+            [$_ENV, $_SERVER] = $backup;
+        }
+
+        Assert::same($env->getRPCAddress(), 'tcp://server:6001');
+    }
+
     public function testFromGlobals(): void
     {
         $_ENV['RR_MODE'] = 'global_mode';

@@ -10,7 +10,9 @@ use Mockery\MockInterface;
 use Testo\Lifecycle\BeforeTest;
 use Testo\Test;
 use Testo\Assert;
+use Testo\Expect;
 use Spiral\Goridge\RPC\Codec\JsonCodec;
+use Spiral\Goridge\RPC\Exception\ServiceException;
 use Spiral\Goridge\RPC\RPCInterface;
 use Spiral\RoadRunner\Informer\Worker;
 use Spiral\RoadRunner\Informer\Workers;
@@ -63,6 +65,44 @@ final class WorkerPoolTest
         $this->rpc->shouldReceive('call')->once()->with('informer.Workers', 'test', Mockery::andAnyOtherArgs())->andReturn(['workers' => $workers]);
 
         Assert::equals($this->workerPool->getWorkers('test'), new Workers($expected));
+    }
+
+    public function testGetWorkersMapsInformerFields(): void
+    {
+        $this->rpc->shouldReceive('call')->once()->with('informer.Workers', 'http', Mockery::andAnyOtherArgs())->andReturn([
+            'workers' => [[
+                'pid' => 101,
+                'status' => 2,
+                'numExecs' => 3,
+                'created' => 1700000000,
+                'memoryUsage' => 4096,
+                'CPUPercent' => 12.5,
+                'command' => 'php worker.php',
+                'statusStr' => 'working',
+            ]],
+        ]);
+
+        $workers = $this->workerPool->getWorkers('http')->getWorkers();
+
+        Assert::count($workers, 1);
+        Assert::same($workers[0]->pid, 101);
+        Assert::same($workers[0]->statusCode, 2);
+        Assert::same($workers[0]->executions, 3);
+        Assert::same($workers[0]->createdAt, 1700000000);
+        Assert::same($workers[0]->memoryUsage, 4096);
+        Assert::same($workers[0]->cpuUsage, 12.5);
+        Assert::same($workers[0]->command, 'php worker.php');
+        Assert::same($workers[0]->status, 'working');
+    }
+
+    public function testRpcExceptionIsPropagated(): never
+    {
+        $exception = new ServiceException('Plugin not found');
+        $this->rpc->shouldReceive('call')->with('informer.Workers', 'unknown', Mockery::andAnyOtherArgs())->andThrow($exception);
+
+        Expect::exception($exception);
+
+        $this->workerPool->countWorkers('unknown');
     }
 
     public function testRemoveWorker(): void
