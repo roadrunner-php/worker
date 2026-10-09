@@ -1,80 +1,90 @@
-<a href="https://roadrunner.dev" target="_blank">
-  <picture>
-    <source media="(prefers-color-scheme: dark)" srcset="https://github.com/roadrunner-server/.github/assets/8040338/e6bde856-4ec6-4a52-bd5b-bfe78736c1ff">
-    <img align="center" src="https://github.com/roadrunner-server/.github/assets/8040338/040fb694-1dd3-4865-9d29-8e0748c2c8b8">
-  </picture>
-</a>
 <p align="center">
- <a href="https://packagist.org/packages/spiral/roadrunner"><img src="https://poser.pugx.org/spiral/roadrunner/version"></a>
-	<a href="https://pkg.go.dev/github.com/spiral/roadrunner?tab=doc"><img src="https://godoc.org/github.com/spiral/roadrunner?status.svg"></a>
-	<a href="https://github.com/spiral/roadrunner/actions"><img src="https://github.com/spiral/roadrunner/workflows/CI/badge.svg" alt=""></a>
-	<a href="https://goreportcard.com/report/github.com/spiral/roadrunner"><img src="https://goreportcard.com/badge/github.com/spiral/roadrunner"></a>
-	<a href="https://scrutinizer-ci.com/g/spiral/roadrunner/?branch=master"><img src="https://scrutinizer-ci.com/g/spiral/roadrunner/badges/quality-score.png"></a>
-	<a href="https://discord.gg/TFeEmCs"><img src="https://img.shields.io/badge/discord-chat-magenta.svg"></a>
-	<a href="https://packagist.org/packages/spiral/roadrunner"><img src="https://img.shields.io/packagist/dd/spiral/roadrunner?style=flat-square"></a>
+    <a href="https://roadrunner.dev"><picture>
+        <source media="(prefers-color-scheme: dark)" srcset="https://github.com/roadrunner-server/.github/assets/8040338/e6bde856-4ec6-4a52-bd5b-bfe78736c1ff">
+        <img alt="RoadRunner" src="https://github.com/roadrunner-server/.github/assets/8040338/040fb694-1dd3-4865-9d29-8e0748c2c8b8" style="width: 6in; display: block">
+    </picture></a>
 </p>
 
-RoadRunner is an open-source (MIT licensed) high-performance PHP application server, load balancer, and process manager.
-It supports running as a service with the ability to extend its functionality on a per-project basis.
+<p align="center">The common PHP worker for the RoadRunner application server</p>
 
-RoadRunner includes PSR-7/PSR-17 compatible HTTP and HTTP/2 server and can be used to replace classic Nginx+FPM setup with much greater performance and flexibility.
+<div align="center">
 
-<p align="center">
-	<a href="https://roadrunner.dev/"><b>Official Website</b></a> | 
-	<a href="https://docs.roadrunner.dev"><b>Documentation</b></a>
-</p>
+[![Documentation](https://img.shields.io/badge/Documentation-blue?style=for-the-badge&logo=gitbook&logoColor=white)](https://docs.roadrunner.dev/docs/php-worker/worker)
+[![Sponsor](https://img.shields.io/static/v1?style=for-the-badge&label=&message=Sponsor&logo=githubsponsors&logoColor=white&color=%23EA4AAA)](https://github.com/sponsors/roadrunner-server)
 
-Repository:
---------
+[![Psalm Level](https://shepherd.dev/github/roadrunner-php/worker/level.svg)](https://shepherd.dev/github/roadrunner-php/worker)
+[![Type Coverage](https://shepherd.dev/github/roadrunner-php/worker/coverage.svg)](https://shepherd.dev/github/roadrunner-php/worker)
 
-This repository contains the common codebase for all binary roadrunner workers. 
-Check [spiral/roadrunner](https://github.com/spiral/roadrunner) to access application
-server and [spiral/roadrunner-http](https://github.com/spiral/roadrunner-http) for PSR-7 compatible worker.
+</div>
 
-You can use the convenient installer to download the latest available compatible version of RoadRunner assembly:
+<br />
 
-```bash
-$ composer require spiral/roadrunner-cli --dev
-```
+This package contains the common codebase for all RoadRunner PHP workers: it receives payloads from the server over [Goridge](https://github.com/roadrunner-php/goridge), sends responses back and gives access to the worker environment and the worker pool.
+Check [roadrunner-server/roadrunner](https://github.com/roadrunner-server/roadrunner) for the application server itself and [roadrunner-php/http](https://github.com/roadrunner-php/http) for a PSR-7 compatible HTTP worker.
 
-To download latest version of application server:
+## Get Started
+
+### Installation
 
 ```bash
-$ vendor/bin/rr get
+composer require spiral/roadrunner-worker
 ```
 
-Example:
--------
+[![PHP](https://img.shields.io/packagist/php-v/spiral/roadrunner-worker.svg?style=flat-square&logo=php)](https://packagist.org/packages/spiral/roadrunner-worker)
+[![Latest Version on Packagist](https://img.shields.io/packagist/v/spiral/roadrunner-worker.svg?style=flat-square&logo=packagist)](https://packagist.org/packages/spiral/roadrunner-worker)
+[![License](https://img.shields.io/packagist/l/spiral/roadrunner-worker.svg?style=flat-square)](LICENSE)
+[![Total Downloads](https://img.shields.io/packagist/dt/spiral/roadrunner-worker.svg?style=flat-square)](https://packagist.org/packages/spiral/roadrunner-worker/stats)
 
-To init abstract RoadRunner worker:
+The RoadRunner binary can be downloaded with the [RoadRunner CLI](https://github.com/roadrunner-php/cli):
+
+```bash
+composer require spiral/roadrunner-cli --dev
+vendor/bin/rr get
+```
+
+### Configuration
+
+Point the RoadRunner server to your worker script in `.rr.yaml`:
+
+```yaml
+version: '3'
+
+server:
+  command: "php worker.php"
+```
+
+See the [documentation](https://docs.roadrunner.dev/docs/php-worker/worker) for the full list of options.
+
+### Writing a Worker
+
+A minimal worker that receives payloads and responds to them:
 
 ```php
 <?php
 
 require __DIR__ . '/vendor/autoload.php';
 
-// Create a new Worker from global environment
-$worker = \Spiral\RoadRunner\Worker::create();
+use Spiral\RoadRunner\Payload;
+use Spiral\RoadRunner\Worker;
 
-while ($data = $worker->waitPayload()) {
-    // Received Payload
-    var_dump($data);
+// Create a new Worker from the global environment
+$worker = Worker::create();
 
-    // Respond Answer
-    $worker->respond(new \Spiral\RoadRunner\Payload('DONE'));
+while ($payload = $worker->waitPayload()) {
+    // Received payload
+    var_dump($payload->body);
+
+    // Respond
+    $worker->respond(new Payload('DONE'));
 }
+```
+
+## Testing
+
+```bash
+composer test
 ```
 
 <a href="https://spiral.dev/">
 <img src="https://user-images.githubusercontent.com/773481/220979012-e67b74b5-3db1-41b7-bdb0-8a042587dedc.jpg" alt="try Spiral Framework" />
 </a>
-
-Testing:
---------
-
-This codebase is automatically tested via host repository - [spiral/roadrunner](https://github.com/spiral/roadrunner).
-
-License:
---------
-
-The MIT License (MIT). Please see [`LICENSE`](./LICENSE) for more information. Maintained by [Spiral Scout](https://spiralscout.com).
