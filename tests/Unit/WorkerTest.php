@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace Spiral\RoadRunner\Tests\Worker\Unit;
 
-use Mockery;
 use Psr\Log\LoggerInterface;
 use Spiral\Goridge\Exception\GoridgeException;
 use Spiral\Goridge\Exception\TransportException;
@@ -26,19 +25,6 @@ use Testo\Test;
 #[Test]
 final class WorkerTest
 {
-    #[DataProvider('respondDataProvider')]
-    public function testRespond(int $expectedFlags, ?int $codec): void
-    {
-        $expected = new Frame('Hello World!', [0 => 0], $expectedFlags);
-
-        $relay = Mockery::mock(RelayInterface::class)->shouldIgnoreMissing();
-        $relay->shouldReceive('send')->once()->with(Mockery::isEqual($expected), Mockery::andAnyOtherArgs());
-
-        $worker = new Worker($relay, false);
-
-        $worker->respond(new Payload('Hello World!'), $codec);
-    }
-
     public static function respondDataProvider(): \Traversable
     {
         yield [0, null];
@@ -46,10 +32,23 @@ final class WorkerTest
         yield [Frame::CODEC_JSON, Frame::CODEC_JSON];
     }
 
+    #[DataProvider('respondDataProvider')]
+    public function testRespond(int $expectedFlags, ?int $codec): void
+    {
+        $expected = new Frame('Hello World!', [0 => 0], $expectedFlags);
+
+        $relay = \Mockery::mock(RelayInterface::class)->shouldIgnoreMissing();
+        $relay->shouldReceive('send')->once()->with(\Mockery::isEqual($expected), \Mockery::andAnyOtherArgs());
+
+        $worker = new Worker($relay, false);
+
+        $worker->respond(new Payload('Hello World!'), $codec);
+    }
+
     public function testRespondPrependsHeaderToBody(): void
     {
-        $relay = Mockery::mock(RelayInterface::class);
-        $relay->expects('send')->with(Mockery::isEqual(new Frame('headerbody', [6])));
+        $relay = \Mockery::mock(RelayInterface::class);
+        $relay->expects('send')->with(\Mockery::isEqual(new Frame('headerbody', [6])));
 
         $worker = new Worker($relay, false);
 
@@ -71,8 +70,8 @@ final class WorkerTest
 
     public function testErrorSendsErrorFrame(): void
     {
-        $relay = Mockery::mock(RelayInterface::class);
-        $relay->expects('send')->with(Mockery::isEqual(new Frame('Something went wrong', [], Frame::ERROR)));
+        $relay = \Mockery::mock(RelayInterface::class);
+        $relay->expects('send')->with(\Mockery::isEqual(new Frame('Something went wrong', [], Frame::ERROR)));
 
         $worker = new Worker($relay, false);
 
@@ -81,8 +80,8 @@ final class WorkerTest
 
     public function testStopSendsStopHeader(): void
     {
-        $relay = Mockery::mock(RelayInterface::class);
-        $relay->expects('send')->with(Mockery::isEqual(new Frame('{"stop":true}', [13])));
+        $relay = \Mockery::mock(RelayInterface::class);
+        $relay->expects('send')->with(\Mockery::isEqual(new Frame('{"stop":true}', [13])));
 
         $worker = new Worker($relay, false);
 
@@ -92,7 +91,7 @@ final class WorkerTest
     public function testRelayGoridgeExceptionIsRethrownAsTransportException(): never
     {
         $previous = new GoridgeException('Connection lost', 42);
-        $relay = Mockery::mock(RelayInterface::class);
+        $relay = \Mockery::mock(RelayInterface::class);
         $relay->allows('send')->andThrow($previous);
         $worker = new Worker($relay, false);
 
@@ -107,7 +106,7 @@ final class WorkerTest
     public function testRelayErrorIsRethrownAsRoadRunnerException(): never
     {
         $previous = new \LogicException('Unexpected failure', 7);
-        $relay = Mockery::mock(RelayInterface::class);
+        $relay = \Mockery::mock(RelayInterface::class);
         $relay->allows('send')->andThrow($previous);
         $worker = new Worker($relay, false);
 
@@ -345,7 +344,7 @@ final class WorkerTest
 
     public function testCreateFromEnvironment(): void
     {
-        $logger = Mockery::mock(LoggerInterface::class);
+        $logger = \Mockery::mock(LoggerInterface::class);
 
         $worker = Worker::createFromEnvironment(new Environment(['RR_RELAY' => 'pipes']), false, $logger);
 
@@ -355,7 +354,7 @@ final class WorkerTest
 
     public function testCreateUsesGlobalEnvironment(): void
     {
-        $logger = Mockery::mock(LoggerInterface::class);
+        $logger = \Mockery::mock(LoggerInterface::class);
         $backup = [$_ENV, $_SERVER];
         $_SERVER['RR_RELAY'] = 'pipes';
 

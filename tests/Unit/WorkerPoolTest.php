@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace Spiral\RoadRunner\Tests\Worker\Unit;
 
-use Mockery;
 use Testo\Data\DataProvider;
 use Mockery\MockInterface;
 use Testo\Lifecycle\BeforeTest;
@@ -35,18 +34,38 @@ final class WorkerPoolTest
     private MockInterface|RPCInterface $rpc;
     private WorkerPool $workerPool;
 
-    #[BeforeTest]
-    protected function setUp(): void
+    public static function countDataProvider(): \Traversable
     {
-        $this->rpc = Mockery::mock(RPCInterface::class)->shouldIgnoreMissing();
-        $this->rpc->shouldReceive('withCodec')->once()->with(Mockery::type(JsonCodec::class), Mockery::andAnyOtherArgs())->andReturnSelf();
+        yield [0, []];
+        yield [2, [self::EXAMPLE_WORKER, self::EXAMPLE_WORKER]];
+    }
 
-        $this->workerPool = new WorkerPool($this->rpc);
+    public static function getWorkersDataProvider(): \Traversable
+    {
+        yield [[], []];
+
+        $workers = \array_map(static function (array $worker): Worker {
+            return new Worker(
+                pid: $worker['pid'],
+                statusCode: $worker['status'],
+                executions: $worker['numExecs'],
+                createdAt: $worker['created'],
+                memoryUsage: $worker['memoryUsage'],
+                cpuUsage: $worker['CPUPercent'],
+                command: $worker['command'],
+                status: $worker['statusStr'],
+            );
+        }, [
+            self::EXAMPLE_WORKER,
+            self::EXAMPLE_WORKER,
+        ]);
+
+        yield [$workers, [self::EXAMPLE_WORKER, self::EXAMPLE_WORKER]];
     }
 
     public function testAddWorker(): void
     {
-        $this->rpc->shouldReceive('call')->once()->with('informer.AddWorker', 'test', Mockery::andAnyOtherArgs());
+        $this->rpc->shouldReceive('call')->once()->with('informer.AddWorker', 'test', \Mockery::andAnyOtherArgs());
 
         $this->workerPool->addWorker('test');
     }
@@ -54,7 +73,7 @@ final class WorkerPoolTest
     #[DataProvider('countDataProvider')]
     public function testCountWorkers(int $expected, array $workers): void
     {
-        $this->rpc->shouldReceive('call')->once()->with('informer.Workers', 'test', Mockery::andAnyOtherArgs())->andReturn(['workers' => $workers]);
+        $this->rpc->shouldReceive('call')->once()->with('informer.Workers', 'test', \Mockery::andAnyOtherArgs())->andReturn(['workers' => $workers]);
 
         Assert::same($this->workerPool->countWorkers('test'), $expected);
     }
@@ -62,14 +81,14 @@ final class WorkerPoolTest
     #[DataProvider('getWorkersDataProvider')]
     public function testGetWorkers(array $expected, array $workers): void
     {
-        $this->rpc->shouldReceive('call')->once()->with('informer.Workers', 'test', Mockery::andAnyOtherArgs())->andReturn(['workers' => $workers]);
+        $this->rpc->shouldReceive('call')->once()->with('informer.Workers', 'test', \Mockery::andAnyOtherArgs())->andReturn(['workers' => $workers]);
 
         Assert::equals($this->workerPool->getWorkers('test'), new Workers($expected));
     }
 
     public function testGetWorkersMapsInformerFields(): void
     {
-        $this->rpc->shouldReceive('call')->once()->with('informer.Workers', 'http', Mockery::andAnyOtherArgs())->andReturn([
+        $this->rpc->shouldReceive('call')->once()->with('informer.Workers', 'http', \Mockery::andAnyOtherArgs())->andReturn([
             'workers' => [[
                 'pid' => 101,
                 'status' => 2,
@@ -98,7 +117,7 @@ final class WorkerPoolTest
     public function testRpcExceptionIsPropagated(): never
     {
         $exception = new ServiceException('Plugin not found');
-        $this->rpc->shouldReceive('call')->with('informer.Workers', 'unknown', Mockery::andAnyOtherArgs())->andThrow($exception);
+        $this->rpc->shouldReceive('call')->with('informer.Workers', 'unknown', \Mockery::andAnyOtherArgs())->andThrow($exception);
 
         Expect::exception($exception);
 
@@ -107,37 +126,17 @@ final class WorkerPoolTest
 
     public function testRemoveWorker(): void
     {
-        $this->rpc->shouldReceive('call')->once()->with('informer.RemoveWorker', 'test', Mockery::andAnyOtherArgs());
+        $this->rpc->shouldReceive('call')->once()->with('informer.RemoveWorker', 'test', \Mockery::andAnyOtherArgs());
 
         $this->workerPool->removeWorker('test');
     }
 
-    public static function countDataProvider(): \Traversable
+    #[BeforeTest]
+    protected function setUp(): void
     {
-        yield [0, []];
-        yield [2, [self::EXAMPLE_WORKER, self::EXAMPLE_WORKER]];
-    }
+        $this->rpc = \Mockery::mock(RPCInterface::class)->shouldIgnoreMissing();
+        $this->rpc->shouldReceive('withCodec')->once()->with(\Mockery::type(JsonCodec::class), \Mockery::andAnyOtherArgs())->andReturnSelf();
 
-    public static function getWorkersDataProvider(): \Traversable
-    {
-        yield [[], []];
-
-        $workers = \array_map(static function (array $worker): Worker {
-            return new Worker(
-                pid: $worker['pid'],
-                statusCode: $worker['status'],
-                executions: $worker['numExecs'],
-                createdAt:  $worker['created'],
-                memoryUsage: $worker['memoryUsage'],
-                cpuUsage: $worker['CPUPercent'],
-                command: $worker['command'],
-                status: $worker['statusStr'],
-            );
-        }, [
-            self::EXAMPLE_WORKER,
-            self::EXAMPLE_WORKER,
-        ]);
-
-        yield [$workers, [self::EXAMPLE_WORKER, self::EXAMPLE_WORKER]];
+        $this->workerPool = new WorkerPool($this->rpc);
     }
 }

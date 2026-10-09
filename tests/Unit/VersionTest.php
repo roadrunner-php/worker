@@ -26,7 +26,7 @@ final class VersionTest
                 ],
             ],
             '1.9.0',
-            '1.*'
+            '1.*',
         ];
 
 
@@ -37,7 +37,7 @@ final class VersionTest
                 ],
             ],
             '2.1.0',
-            '2.*'
+            '2.*',
         ];
 
         yield [
@@ -50,7 +50,7 @@ final class VersionTest
                 ],
             ],
             '1.9.0',
-            '1.*'
+            '1.*',
         ];
 
         yield [
@@ -60,7 +60,7 @@ final class VersionTest
                 ],
             ],
             '1.8.0',
-            '1.*'
+            '1.*',
         ];
 
         yield 'calendar version' => [
@@ -70,7 +70,7 @@ final class VersionTest
                 ],
             ],
             '2025.1.15',
-            '2025.*'
+            '2025.*',
         ];
 
         yield 'semver v3 after calendar versions' => [
@@ -83,7 +83,7 @@ final class VersionTest
                 ],
             ],
             '3.0.0',
-            '3.*'
+            '3.*',
         ];
 
         yield 'v3 dev branch' => [
@@ -93,7 +93,7 @@ final class VersionTest
                 ],
             ],
             '3.x-dev',
-            '3.*'
+            '3.*',
         ];
 
         yield 'branch alias without dots' => [
@@ -103,7 +103,7 @@ final class VersionTest
                 ],
             ],
             'dev-master',
-            '*'
+            '*',
         ];
 
         yield 'non-numeric major version' => [
@@ -113,7 +113,7 @@ final class VersionTest
                 ],
             ],
             'dev-feature/1.x',
-            '*'
+            '*',
         ];
 
         yield 'package without pretty version' => [
@@ -121,7 +121,7 @@ final class VersionTest
                 'spiral/roadrunner' => [],
             ],
             '',
-            '*'
+            '*',
         ];
 
         yield [
@@ -131,21 +131,14 @@ final class VersionTest
                 ],
             ],
             Version::VERSION_FALLBACK,
-            '*'
+            '*',
         ];
 
         yield [
             [],
             Version::VERSION_FALLBACK,
-            '*'
+            '*',
         ];
-    }
-
-    #[BeforeTest]
-    protected function setUp(): void
-    {
-        $ref = new \ReflectionClass(InstalledVersions::class);
-        $ref->setStaticPropertyValue('canGetVendors', false);
     }
 
     #[DataProvider('provideVersions')]
@@ -157,5 +150,12 @@ final class VersionTest
 
         Assert::same(Version::current(), $expectedVersion);
         Assert::same(Version::constraint(), $expectedConstraint);
+    }
+
+    #[BeforeTest]
+    protected function setUp(): void
+    {
+        $ref = new \ReflectionClass(InstalledVersions::class);
+        $ref->setStaticPropertyValue('canGetVendors', false);
     }
 }
