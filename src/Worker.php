@@ -90,6 +90,7 @@ class Worker implements StreamWorkerInterface
         return $this->logger;
     }
 
+    #[\Override]
     public function waitPayload(): ?Payload
     {
         while (true) {
@@ -118,6 +119,7 @@ class Worker implements StreamWorkerInterface
         }
     }
 
+    #[\Override]
     public function withStreamMode(): static
     {
         $clone = clone $this;
@@ -133,12 +135,14 @@ class Worker implements StreamWorkerInterface
      *        Can be {@see Frame::CODEC_PROTO} for Protocol Buffers or {@see Frame::CODEC_JSON} for JSON.
      *        This parameter will be removed in v4.0 and {@see Frame::CODEC_PROTO} will be used by default.
      */
+    #[\Override]
     public function respond(Payload $payload, ?int $codec = null): void
     {
         $this->streamMode and ++$this->framesSent;
         $this->send($payload->body, $payload->header, $payload->eos, $codec);
     }
 
+    #[\Override]
     public function error(string $error): void
     {
         $frame = new Frame($error, [], Frame::ERROR);
@@ -146,16 +150,19 @@ class Worker implements StreamWorkerInterface
         $this->sendFrame($frame);
     }
 
+    #[\Override]
     public function stop(): void
     {
         $this->send('', $this->encode(['stop' => true]));
     }
 
+    #[\Override]
     public function hasPayload(?string $class = null): bool
     {
         return $this->findPayload($class) !== null;
     }
 
+    #[\Override]
     public function getPayload(?string $class = null): ?Payload
     {
         $pos = $this->findPayload($class);

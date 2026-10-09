@@ -21,6 +21,7 @@ final class Workers implements \Countable
         return $this->workers;
     }
 
+    #[\Override]
     public function count(): int
     {
         return \count($this->workers);

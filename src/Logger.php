@@ -11,9 +11,7 @@ class Logger implements LoggerInterface
 {
     use LoggerTrait;
 
-    /**
-     * @psalm-suppress RedundantConditionGivenDocblockType
-     */
+    #[\Override]
     public function log(mixed $level, string|\Stringable $message, array $context = []): void
     {
         \assert(\is_scalar($level), 'Invalid log level type');

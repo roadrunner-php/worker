@@ -33,16 +33,19 @@ class Environment implements EnvironmentInterface
         return new self($env);
     }
 
+    #[\Override]
     public function getMode(): string
     {
         return $this->get('RR_MODE');
     }
 
+    #[\Override]
     public function getRelayAddress(): string
     {
         return $this->get('RR_RELAY', 'pipes');
     }
 
+    #[\Override]
     public function getRPCAddress(): string
     {
         return $this->get('RR_RPC', 'tcp://127.0.0.1:6001');
