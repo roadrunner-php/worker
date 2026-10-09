@@ -15,7 +15,6 @@
         </ignoreFiles>
     </projectFiles>
     <issueHandlers>
-        <MissingOverrideAttribute errorLevel="suppress" />
         <ClassMustBeFinal errorLevel="suppress" />
     </issueHandlers>
     <forbiddenFunctions>
