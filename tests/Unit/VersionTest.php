@@ -96,6 +96,34 @@ final class VersionTest
             '3.*'
         ];
 
+        yield 'branch alias without dots' => [
+            [
+                'spiral/roadrunner' => [
+                    'pretty_version' => 'dev-master',
+                ],
+            ],
+            'dev-master',
+            '*'
+        ];
+
+        yield 'non-numeric major version' => [
+            [
+                'spiral/roadrunner' => [
+                    'pretty_version' => 'dev-feature/1.x',
+                ],
+            ],
+            'dev-feature/1.x',
+            '*'
+        ];
+
+        yield 'package without pretty version' => [
+            [
+                'spiral/roadrunner' => [],
+            ],
+            '',
+            '*'
+        ];
+
         yield [
             [
                 'spiral/roadrunner-http' => [

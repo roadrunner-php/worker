@@ -7,7 +7,7 @@ namespace Spiral\RoadRunner\Tests\Worker\Unit\Stub;
 use Spiral\Goridge\Frame;
 use Spiral\Goridge\Relay;
 
-final class TestRelay extends Relay
+class TestRelay extends Relay
 {
     /** @var Frame[] */
     private array $frames = [];
