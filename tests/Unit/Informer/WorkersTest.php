@@ -4,11 +4,13 @@ declare(strict_types=1);
 
 namespace Spiral\RoadRunner\Tests\Worker\Unit\Informer;
 
-use PHPUnit\Framework\TestCase;
+use Testo\Test;
+use Testo\Assert;
 use Spiral\RoadRunner\Informer\Worker;
 use Spiral\RoadRunner\Informer\Workers;
 
-final class WorkersTest extends TestCase
+#[Test]
+final class WorkersTest
 {
     public function testGetWorkers(): void
     {
@@ -17,7 +19,7 @@ final class WorkersTest extends TestCase
             new Worker(2, 2, 2, 2, 2, 2.0, 'test2', 'test2'),
         ];
 
-        $this->assertEquals([], (new Workers())->getWorkers());
-        $this->assertEquals($workers, (new Workers($workers))->getWorkers());
+        Assert::equals((new Workers())->getWorkers(), []);
+        Assert::equals((new Workers($workers))->getWorkers(), $workers);
     }
 }

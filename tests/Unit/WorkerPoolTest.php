@@ -4,16 +4,20 @@ declare(strict_types=1);
 
 namespace Spiral\RoadRunner\Tests\Worker\Unit;
 
-use PHPUnit\Framework\Attributes\DataProvider;
-use PHPUnit\Framework\MockObject\Exception;
-use PHPUnit\Framework\TestCase;
+use Mockery;
+use Testo\Data\DataProvider;
+use Mockery\MockInterface;
+use Testo\Lifecycle\BeforeTest;
+use Testo\Test;
+use Testo\Assert;
 use Spiral\Goridge\RPC\Codec\JsonCodec;
 use Spiral\Goridge\RPC\RPCInterface;
 use Spiral\RoadRunner\Informer\Worker;
 use Spiral\RoadRunner\Informer\Workers;
 use Spiral\RoadRunner\WorkerPool;
 
-final class WorkerPoolTest extends TestCase
+#[Test]
+final class WorkerPoolTest
 {
     private const EXAMPLE_WORKER = [
         'pid' => 1,
@@ -26,29 +30,21 @@ final class WorkerPoolTest extends TestCase
         'statusStr' => 'test',
     ];
 
-    private \PHPUnit\Framework\MockObject\MockObject|RPCInterface $rpc;
+    private MockInterface|RPCInterface $rpc;
     private WorkerPool $workerPool;
 
-    /**
-     * @throws Exception
-     */
+    #[BeforeTest]
     protected function setUp(): void
     {
-        parent::setUp();
-
-        $this->rpc = $this->createMock(RPCInterface::class);
-        $this->rpc
-            ->expects($this->once())
-            ->method('withCodec')
-            ->with($this->isInstanceOf(JsonCodec::class))
-            ->willReturnSelf();
+        $this->rpc = Mockery::mock(RPCInterface::class)->shouldIgnoreMissing();
+        $this->rpc->shouldReceive('withCodec')->once()->with(Mockery::type(JsonCodec::class), Mockery::andAnyOtherArgs())->andReturnSelf();
 
         $this->workerPool = new WorkerPool($this->rpc);
     }
 
     public function testAddWorker(): void
     {
-        $this->rpc->expects($this->once())->method('call')->with('informer.AddWorker', 'test');
+        $this->rpc->shouldReceive('call')->once()->with('informer.AddWorker', 'test', Mockery::andAnyOtherArgs());
 
         $this->workerPool->addWorker('test');
     }
@@ -56,30 +52,22 @@ final class WorkerPoolTest extends TestCase
     #[DataProvider('countDataProvider')]
     public function testCountWorkers(int $expected, array $workers): void
     {
-        $this->rpc
-            ->expects($this->once())
-            ->method('call')
-            ->with('informer.Workers', 'test')
-            ->willReturn(['workers' => $workers]);
+        $this->rpc->shouldReceive('call')->once()->with('informer.Workers', 'test', Mockery::andAnyOtherArgs())->andReturn(['workers' => $workers]);
 
-        $this->assertSame($expected, $this->workerPool->countWorkers('test'));
+        Assert::same($this->workerPool->countWorkers('test'), $expected);
     }
 
     #[DataProvider('getWorkersDataProvider')]
     public function testGetWorkers(array $expected, array $workers): void
     {
-        $this->rpc
-            ->expects($this->once())
-            ->method('call')
-            ->with('informer.Workers', 'test')
-            ->willReturn(['workers' => $workers]);
+        $this->rpc->shouldReceive('call')->once()->with('informer.Workers', 'test', Mockery::andAnyOtherArgs())->andReturn(['workers' => $workers]);
 
-        $this->assertEquals(new Workers($expected), $this->workerPool->getWorkers('test'));
+        Assert::equals($this->workerPool->getWorkers('test'), new Workers($expected));
     }
 
     public function testRemoveWorker(): void
     {
-        $this->rpc->expects($this->once())->method('call')->with('informer.RemoveWorker', 'test');
+        $this->rpc->shouldReceive('call')->once()->with('informer.RemoveWorker', 'test', Mockery::andAnyOtherArgs());
 
         $this->workerPool->removeWorker('test');
     }

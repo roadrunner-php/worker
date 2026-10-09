@@ -4,25 +4,24 @@ declare(strict_types=1);
 
 namespace Spiral\RoadRunner\Tests\Worker\Unit;
 
-use PHPUnit\Framework\Attributes\DataProvider;
-use PHPUnit\Framework\TestCase;
+use Mockery;
+use Testo\Data\DataProvider;
+use Testo\Test;
 use Spiral\Goridge\Frame;
 use Spiral\Goridge\RelayInterface;
 use Spiral\RoadRunner\Payload;
 use Spiral\RoadRunner\Worker;
 
-final class WorkerTest extends TestCase
+#[Test]
+final class WorkerTest
 {
     #[DataProvider('respondDataProvider')]
     public function testRespond(int $expectedFlags, ?int $codec): void
     {
         $expected = new Frame('Hello World!', [0 => 0], $expectedFlags);
 
-        $relay = $this->createMock(RelayInterface::class);
-        $relay
-            ->expects($this->once())
-            ->method('send')
-            ->with($this->equalTo($expected));
+        $relay = Mockery::mock(RelayInterface::class)->shouldIgnoreMissing();
+        $relay->shouldReceive('send')->once()->with(Mockery::isEqual($expected), Mockery::andAnyOtherArgs());
 
         $worker = new Worker($relay, false);
 
