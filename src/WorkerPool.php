@@ -6,8 +6,8 @@ namespace Spiral\RoadRunner;
 
 use Spiral\Goridge\RPC\Codec\JsonCodec;
 use Spiral\Goridge\RPC\RPCInterface;
-use Spiral\RoadRunner\Informer\Workers;
 use Spiral\RoadRunner\Informer\Worker as InformerWorker;
+use Spiral\RoadRunner\Informer\Workers;
 
 /**
  * @psalm-type TInformerWorker = array{

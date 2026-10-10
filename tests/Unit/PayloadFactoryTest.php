@@ -4,10 +4,6 @@ declare(strict_types=1);
 
 namespace Spiral\RoadRunner\Tests\Worker\Unit;
 
-use Testo\Data\DataSet;
-use Testo\Test;
-use Testo\Assert;
-use Testo\Expect;
 use Spiral\Goridge\Frame;
 use Spiral\RoadRunner\Exception\RoadRunnerException;
 use Spiral\RoadRunner\Message\Command\GetProcessId;
@@ -16,6 +12,10 @@ use Spiral\RoadRunner\Message\Command\StreamStop;
 use Spiral\RoadRunner\Message\Command\WorkerStop;
 use Spiral\RoadRunner\Payload;
 use Spiral\RoadRunner\PayloadFactory;
+use Testo\Assert;
+use Testo\Data\DataSet;
+use Testo\Expect;
+use Testo\Test;
 
 #[Test]
 final class PayloadFactoryTest

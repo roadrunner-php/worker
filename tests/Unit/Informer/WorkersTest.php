@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace Spiral\RoadRunner\Tests\Worker\Unit\Informer;
 
-use Testo\Test;
-use Testo\Assert;
 use Spiral\RoadRunner\Informer\Worker;
 use Spiral\RoadRunner\Informer\Workers;
+use Testo\Assert;
+use Testo\Test;
 
 #[Test]
 final class WorkersTest

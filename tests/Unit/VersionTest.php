@@ -4,12 +4,12 @@ declare(strict_types=1);
 
 namespace Spiral\RoadRunner\Tests\Worker\Unit;
 
+use Composer\InstalledVersions;
+use Spiral\RoadRunner\Version;
+use Testo\Assert;
 use Testo\Data\DataProvider;
 use Testo\Lifecycle\BeforeTest;
 use Testo\Test;
-use Testo\Assert;
-use Composer\InstalledVersions;
-use Spiral\RoadRunner\Version;
 
 #[Test]
 final class VersionTest

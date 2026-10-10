@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace Spiral\RoadRunner\Tests\Worker\Unit;
 
-use Testo\Test;
-use Testo\Assert;
 use Spiral\RoadRunner\Payload;
+use Testo\Assert;
+use Testo\Test;
 
 #[Test]
 final class PayloadTest

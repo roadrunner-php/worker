@@ -4,18 +4,18 @@ declare(strict_types=1);
 
 namespace Spiral\RoadRunner\Tests\Worker\Unit;
 
-use Testo\Data\DataProvider;
 use Mockery\MockInterface;
-use Testo\Lifecycle\BeforeTest;
-use Testo\Test;
-use Testo\Assert;
-use Testo\Expect;
 use Spiral\Goridge\RPC\Codec\JsonCodec;
 use Spiral\Goridge\RPC\Exception\ServiceException;
 use Spiral\Goridge\RPC\RPCInterface;
 use Spiral\RoadRunner\Informer\Worker;
 use Spiral\RoadRunner\Informer\Workers;
 use Spiral\RoadRunner\WorkerPool;
+use Testo\Assert;
+use Testo\Data\DataProvider;
+use Testo\Expect;
+use Testo\Lifecycle\BeforeTest;
+use Testo\Test;
 
 #[Test]
 final class WorkerPoolTest
