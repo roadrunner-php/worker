@@ -28,18 +28,18 @@ Check [roadrunner-server/roadrunner](https://github.com/roadrunner-server/roadru
 ### Installation
 
 ```bash
-composer require spiral/roadrunner-worker
+composer require roadrunner/worker
 ```
 
-[![PHP](https://img.shields.io/packagist/php-v/spiral/roadrunner-worker.svg?style=flat-square&logo=php)](https://packagist.org/packages/spiral/roadrunner-worker)
-[![Latest Version on Packagist](https://img.shields.io/packagist/v/spiral/roadrunner-worker.svg?style=flat-square&logo=packagist)](https://packagist.org/packages/spiral/roadrunner-worker)
-[![License](https://img.shields.io/packagist/l/spiral/roadrunner-worker.svg?style=flat-square)](LICENSE)
-[![Total Downloads](https://img.shields.io/packagist/dt/spiral/roadrunner-worker.svg?style=flat-square)](https://packagist.org/packages/spiral/roadrunner-worker/stats)
+[![PHP](https://img.shields.io/packagist/php-v/roadrunner/worker.svg?style=flat-square&logo=php)](https://packagist.org/packages/roadrunner/worker)
+[![Latest Version on Packagist](https://img.shields.io/packagist/v/roadrunner/worker.svg?style=flat-square&logo=packagist)](https://packagist.org/packages/roadrunner/worker)
+[![License](https://img.shields.io/packagist/l/roadrunner/worker.svg?style=flat-square)](LICENSE)
+[![Total Downloads](https://img.shields.io/packagist/dt/roadrunner/worker.svg?style=flat-square)](https://packagist.org/packages/roadrunner/worker/stats)
 
 The RoadRunner binary can be downloaded with the [RoadRunner CLI](https://github.com/roadrunner-php/cli):
 
 ```bash
-composer require spiral/roadrunner-cli --dev
+composer require roadrunner/cli --dev
 vendor/bin/rr get
 ```
 

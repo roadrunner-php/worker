@@ -1,48 +1,62 @@
 {
-    "name": "spiral/roadrunner-worker",
+    "name": "roadrunner/worker",
     "type": "library",
-    "description": "RoadRunner: PHP worker",
+    "description": "Base PHP worker for the RoadRunner application server: receives payloads over Goridge, sends responses and manages the worker pool",
+    "keywords": [
+        "roadrunner",
+        "worker",
+        "goridge",
+        "application-server",
+        "long-running"
+    ],
     "license": "MIT",
     "authors": [
         {
-            "name": "Anton Titov (wolfy-j)",
-            "email": "wolfy-j@spiralscout.com"
+            "name": "Anton Titov",
+            "homepage": "https://github.com/wolfy-j"
         },
         {
             "name": "Valery Piashchynski",
             "homepage": "https://github.com/rustatian"
         },
         {
-            "name": "Aleksei Gagarin (roxblnfk)",
+            "name": "Aleksei Gagarin",
             "homepage": "https://github.com/roxblnfk"
         },
         {
-            "name": "Pavel Buchnev (butschster)",
-            "email": "pavel.buchnev@spiralscout.com"
+            "name": "Pavel Buchnev",
+            "homepage": "https://github.com/butschster"
         },
         {
-            "name": "Maksim Smakouz (msmakouz)",
-            "email": "maksim.smakouz@spiralscout.com"
+            "name": "Maksim Smakouz",
+            "homepage": "https://github.com/msmakouz"
         },
         {
             "name": "RoadRunner Community",
             "homepage": "https://github.com/roadrunner-server/roadrunner/graphs/contributors"
         }
     ],
-    "homepage": "https://spiral.dev/",
+    "homepage": "https://roadrunner.dev/",
     "support": {
-        "docs": "https://docs.roadrunner.dev",
+        "docs": "https://docs.roadrunner.dev/docs/php-worker/worker",
         "issues": "https://github.com/roadrunner-server/roadrunner/issues",
+        "source": "https://github.com/roadrunner-php/worker",
         "chat": "https://discord.gg/V6EK4he"
     },
+    "funding": [
+        {
+            "type": "github",
+            "url": "https://github.com/sponsors/roadrunner-server"
+        }
+    ],
     "require": {
         "php": ">=8.2",
         "ext-json": "*",
         "ext-sockets": "*",
+        "composer-runtime-api": "^2.0",
         "psr/log": "^2.0 || ^3.0",
-        "spiral/goridge": "^4.3",
-        "spiral/roadrunner": "^3.0",
-        "composer-runtime-api": "^2.0"
+        "roadrunner/goridge": "^4.5",
+        "spiral/roadrunner": "^3.0"
     },
     "require-dev": {
         "buggregator/trap": "^1.13",
@@ -53,12 +67,11 @@
         "testo/testo": "^0.10.55",
         "vimeo/psalm": "^6 || ^7"
     },
-    "scripts": {
-        "cs:diff": "php-cs-fixer fix --dry-run -v --diff",
-        "cs:fix": "php-cs-fixer fix -v",
-        "test": "testo",
-        "psalm": "psalm",
-        "test:unit": "vendor/bin/testo --suite=Unit"
+    "replace": {
+        "spiral/roadrunner-worker": "self.version"
+    },
+    "suggest": {
+        "roadrunner/cli": "Provides RoadRunner installation and management CLI tools"
     },
     "autoload": {
         "psr-4": {
@@ -70,14 +83,12 @@
             "Spiral\\RoadRunner\\Tests\\Worker\\": "tests"
         }
     },
-    "funding": [
-        {
-            "type": "github",
-            "url": "https://github.com/sponsors/roadrunner-server"
-        }
-    ],
-    "suggest": {
-        "spiral/roadrunner-cli": "Provides RoadRunner installation and management CLI tools"
+    "scripts": {
+        "cs:diff": "php-cs-fixer fix --dry-run -v --diff",
+        "cs:fix": "php-cs-fixer fix -v",
+        "test": "testo",
+        "psalm": "psalm",
+        "test:unit": "vendor/bin/testo --suite=Unit"
     },
     "config": {
         "audit": {
