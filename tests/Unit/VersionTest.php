@@ -63,6 +63,29 @@ final class VersionTest
             '1.*',
         ];
 
+        yield 'package under the new name' => [
+            [
+                'roadrunner/worker' => [
+                    'pretty_version' => 'v3.8.0',
+                ],
+            ],
+            '3.8.0',
+            '3.*',
+        ];
+
+        yield 'old name replaced by the new one' => [
+            [
+                'spiral/roadrunner-worker' => [
+                    'replaced' => ['v3.8.0'],
+                ],
+                'roadrunner/worker' => [
+                    'pretty_version' => 'v3.8.0',
+                ],
+            ],
+            '3.8.0',
+            '3.*',
+        ];
+
         yield 'calendar version' => [
             [
                 'spiral/roadrunner' => [
@@ -126,7 +149,7 @@ final class VersionTest
 
         yield [
             [
-                'spiral/roadrunner-http' => [
+                'roadrunner/http' => [
                     'pretty_version' => 'v1.8.0',
                 ],
             ],

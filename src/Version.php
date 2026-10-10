@@ -10,6 +10,7 @@ final class Version
 {
     public const PACKAGE_NAMES = [
         'spiral/roadrunner',
+        'roadrunner/worker',
         'spiral/roadrunner-worker',
     ];
     public const VERSION_FALLBACK = 'dev-master';
