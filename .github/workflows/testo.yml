@@ -13,3 +13,6 @@ jobs:
       os: >-
         ['ubuntu-latest']
       dependencies: '["lowest","highest"]'
+      codecov: true
+    secrets:
+      CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
