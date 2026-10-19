@@ -9,6 +9,7 @@ use Composer\InstalledVersions;
 final class Version
 {
     public const PACKAGE_NAMES = [
+        'roadrunner/roadrunner',
         'spiral/roadrunner',
         'roadrunner/worker',
         'spiral/roadrunner-worker',

@@ -63,6 +63,32 @@ final class VersionTest
             '1.*',
         ];
 
+        yield 'metapackage under the new name' => [
+            [
+                'roadrunner/roadrunner' => [
+                    'pretty_version' => 'v3.0.0',
+                ],
+                'roadrunner/worker' => [
+                    'pretty_version' => 'v3.8.0',
+                ],
+            ],
+            '3.0.0',
+            '3.*',
+        ];
+
+        yield 'metapackage under both names' => [
+            [
+                'spiral/roadrunner' => [
+                    'pretty_version' => 'v2025.1.15',
+                ],
+                'roadrunner/roadrunner' => [
+                    'pretty_version' => 'v3.0.0',
+                ],
+            ],
+            '3.0.0',
+            '3.*',
+        ];
+
         yield 'package under the new name' => [
             [
                 'roadrunner/worker' => [
