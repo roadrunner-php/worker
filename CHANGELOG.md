@@ -1,5 +1,12 @@
 # Changelog
 
+## [3.8.2](https://github.com/roadrunner-php/worker/compare/v3.8.1...v3.8.2) (2026-10-19)
+
+
+### Bug Fixes
+
+* detect the RoadRunner version from roadrunner/roadrunner ([9b2c264](https://github.com/roadrunner-php/worker/commit/9b2c2640ff082c8636244289293ff8268c31bc4a))
+
 ## [3.8.1](https://github.com/roadrunner-php/worker/compare/v3.8.0...v3.8.1) (2026-10-19)
 
 
